@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Immobilier Paris - Carte Interactive</title>
+    <link rel="stylesheet" href="static/css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" />
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+    <!-- MapTiler pour un style Mapbox professionnel (gratuit) -->
+    <script>
+        // Configuration MapTiler (gratuit, pas besoin de clé pour le style de base)
+        maplibregl.accessToken = '';
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">🏠 Paris Immobilier</h1>
+                <p class="subtitle">Dashboard Interactif par Arrondissement</p>
+            </div>
+            <div class="header-controls">
+                <div class="control-group">
+                    <label for="year-selector">Année</label>
+                    <select id="year-selector" class="select-modern">
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                    </select>
+                </div>
+                <button id="compare-mode-btn" class="btn-modern btn-primary">
+                    <span>⚖️</span> Comparer
+                </button>
+            </div>
+        </header>
+
+        <!-- Mode Comparaison -->
+        <div id="compare-panel" class="compare-panel hidden">
+            <div class="compare-content">
+                <h3>Comparaison d'Arrondissements</h3>
+                <div class="compare-selectors">
+                    <select id="compare-arr1" class="select-modern">
+                        <option value="">Arrondissement 1</option>
+                    </select>
+                    <span class="vs-badge">VS</span>
+                    <select id="compare-arr2" class="select-modern">
+                        <option value="">Arrondissement 2</option>
+                    </select>
+                    <button id="compare-execute" class="btn-modern btn-secondary">Comparer</button>
+                </div>
+                <div id="compare-results" class="compare-results-grid"></div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <h3>📊 Statistiques Globales</h3>
+                    <div id="global-stats" class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Prix Moyen</div>
+                            <div class="stat-value" id="avg-price">-</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Variation</div>
+                            <div class="stat-value" id="avg-variation">-</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>🎯 Indicateurs</h3>
+                    <div class="indicators-list">
+                        <div class="indicator-item" data-indicator="prix">
+                            <span class="indicator-icon">💰</span>
+                            <span class="indicator-label">Prix/m²</span>
+                        </div>
+                        <div class="indicator-item" data-indicator="logements">
+                            <span class="indicator-icon">🏘️</span>
+                            <span class="indicator-label">Logements Sociaux</span>
+                        </div>
+                        <div class="indicator-item" data-indicator="pollution">
+                            <span class="indicator-icon">🌬️</span>
+                            <span class="indicator-label">Qualité Air</span>
+                        </div>
+                        <div class="indicator-item" data-indicator="revenus">
+                            <span class="indicator-icon">💵</span>
+                            <span class="indicator-label">Revenus</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>📍 Arrondissement Sélectionné</h3>
+                    <div id="selected-info" class="selected-info">
+                        <p class="info-placeholder">Survolez ou cliquez sur la carte</p>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Map Container -->
+            <div class="map-container-wrapper">
+                <div id="map" class="map-container"></div>
+                <div class="map-legend">
+                    <h4>Prix/m² (€)</h4>
+                    <div class="legend-gradient"></div>
+                    <div class="legend-labels">
+                        <span>8000</span>
+                        <span>15000</span>
+                    </div>
+                </div>
+                <div class="map-controls">
+                    <button id="play-timeline" class="control-btn">
+                        <span>▶</span> Timeline
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <div class="chart-card">
+                <h3>📈 Évolution Temporelle</h3>
+                <canvas id="timeline-chart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>📊 Comparaison des Prix</h3>
+                <canvas id="comparison-chart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>🎨 Répartition par Typologie</h3>
+                <canvas id="typology-chart"></canvas>
+            </div>
+        </div>
+
+        <!-- Tooltip -->
+        <div id="tooltip" class="tooltip hidden"></div>
+    </div>
+
+    <script src="static/js/paris_detailed_polygons.js"></script>
+    <script src="static/js/paris_official_polygons.js"></script>
+    <script src="static/js/app.js"></script>
+</body>
+</html>
