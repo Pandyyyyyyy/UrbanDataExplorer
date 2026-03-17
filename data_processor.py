@@ -122,27 +122,67 @@ class DataProcessor:
             except (ValueError, TypeError):
                 logements_sociaux = 0
             
-            # Nettoyer la typologie
-            typologie_cleaned = {}
+            # Nettoyer la typologie (structure enrichie)
             typologie_raw = arr.get("typologie", {})
-            total_percentage = 0
+            typologie_cleaned = {}
+            
+            # Nettoyer le type de logement (appartement/maison)
+            type_logement_raw = typologie_raw.get("type_logement", {})
+            typologie_cleaned["type_logement"] = {
+                "appartements": max(0, min(100, float(type_logement_raw.get("appartements", 0)))),
+                "maisons": max(0, min(100, float(type_logement_raw.get("maisons", 0)))),
+                "total_logements": max(0, int(type_logement_raw.get("total_logements", 0)))
+            }
+            
+            # Normaliser les pourcentages type_logement
+            total_type = typologie_cleaned["type_logement"]["appartements"] + typologie_cleaned["type_logement"]["maisons"]
+            if total_type > 0 and total_type != 100:
+                factor = 100 / total_type
+                typologie_cleaned["type_logement"]["appartements"] = round(typologie_cleaned["type_logement"]["appartements"] * factor, 2)
+                typologie_cleaned["type_logement"]["maisons"] = round(typologie_cleaned["type_logement"]["maisons"] * factor, 2)
+            
+            # Nettoyer la répartition par pièces
+            repartition_raw = typologie_raw.get("repartition_pieces", {})
+            typologie_cleaned["repartition_pieces"] = {}
+            total_pieces = 0
             
             for typo in ["Studio", "T2", "T3", "T4", "T5+"]:
-                value = typologie_raw.get(typo, 0)
+                value = repartition_raw.get(typo, 0)
                 try:
-                    value = float(value)
-                    if value < 0:
-                        value = 0
-                    typologie_cleaned[typo] = round(value, 2)
-                    total_percentage += value
+                    value = max(0, min(100, float(value)))
+                    typologie_cleaned["repartition_pieces"][typo] = round(value, 2)
+                    total_pieces += value
                 except (ValueError, TypeError):
-                    typologie_cleaned[typo] = 0
+                    typologie_cleaned["repartition_pieces"][typo] = 0
             
-            # Normaliser les pourcentages si la somme dépasse 100
-            if total_percentage > 100:
-                factor = 100 / total_percentage
-                for typo in typologie_cleaned:
-                    typologie_cleaned[typo] = round(typologie_cleaned[typo] * factor, 2)
+            # Normaliser les pourcentages répartition_pieces
+            if total_pieces > 100:
+                factor = 100 / total_pieces
+                for typo in typologie_cleaned["repartition_pieces"]:
+                    typologie_cleaned["repartition_pieces"][typo] = round(typologie_cleaned["repartition_pieces"][typo] * factor, 2)
+            
+            # Nettoyer le détail par nombre de pièces
+            detail_raw = typologie_raw.get("detail_pieces", {})
+            typologie_cleaned["detail_pieces"] = {}
+            
+            for piece_key in ["1_piece", "2_pieces", "3_pieces", "4_pieces", "5_et_plus_pieces"]:
+                piece_data = detail_raw.get(piece_key, {})
+                typologie_cleaned["detail_pieces"][piece_key] = {
+                    "nombre": max(0, int(piece_data.get("nombre", 0))),
+                    "pourcentage": max(0, min(100, float(piece_data.get("pourcentage", 0)))),
+                    "type": piece_data.get("type", "")
+                }
+            
+            # Nettoyer les statistiques
+            stats_raw = typologie_raw.get("statistiques", {})
+            typologie_cleaned["statistiques"] = {
+                "nombre_total_logements": max(0, int(stats_raw.get("nombre_total_logements", 0))),
+                "logements_principaux": max(0, int(stats_raw.get("logements_principaux", 0))),
+                "logements_secondaires": max(0, int(stats_raw.get("logements_secondaires", 0))),
+                "logements_vacants": max(0, int(stats_raw.get("logements_vacants", 0))),
+                "surface_moyenne_m2": max(0, round(float(stats_raw.get("surface_moyenne_m2", 0)), 1)),
+                "annee": int(stats_raw.get("annee", 2024))
+            }
             
             # Nettoyer l'évolution
             evolution_cleaned = []
@@ -179,6 +219,8 @@ class DataProcessor:
             delits_cleaned = self._clean_delits_data(arr.get("delits_enregistres", {}))
             revenus_cleaned = self._clean_revenus_data(arr.get("revenus_moyens", {}))
             densite_cleaned = self._clean_densite_data(arr.get("densite_population", {}))
+            vegetation_cleaned = self._clean_vegetation_data(arr.get("vegetation_arbres", {}))
+            transports_cleaned = self._clean_transports_data(arr.get("transports_publics", {}))
             
             return {
                 "arrondissement": arr_num,
@@ -192,6 +234,8 @@ class DataProcessor:
                 "delits_enregistres": delits_cleaned,
                 "revenus_moyens": revenus_cleaned,
                 "densite_population": densite_cleaned,
+                "vegetation_arbres": vegetation_cleaned,
+                "transports_publics": transports_cleaned,
                 "metadata": {
                     "cleaned_at": datetime.now().isoformat(),
                     "nb_prix_records": len(prix_cleaned),
@@ -310,6 +354,63 @@ class DataProcessor:
                 "annee": 2023
             }
     
+    def _clean_vegetation_data(self, vegetation: Dict) -> Dict:
+        """Nettoie les données de végétation et arbres."""
+        try:
+            nombre_arbres = max(0, int(vegetation.get("nombre_arbres", 0)))
+            surface_espaces_verts = max(0, float(vegetation.get("surface_espaces_verts_ha", 0)))
+            pourcentage_vegetation = max(0, min(100, float(vegetation.get("pourcentage_vegetation", 0))))
+            arbres_par_km2 = max(0, int(vegetation.get("arbres_par_km2", 0)))
+            parcs_et_jardins = max(0, int(vegetation.get("parcs_et_jardins", 0)))
+            
+            return {
+                "nombre_arbres": nombre_arbres,
+                "surface_espaces_verts_ha": round(surface_espaces_verts, 2),
+                "pourcentage_vegetation": round(pourcentage_vegetation, 2),
+                "arbres_par_km2": arbres_par_km2,
+                "parcs_et_jardins": parcs_et_jardins,
+                "annee": int(vegetation.get("annee", 2024))
+            }
+        except Exception:
+            return {
+                "nombre_arbres": 0,
+                "surface_espaces_verts_ha": 0.0,
+                "pourcentage_vegetation": 0.0,
+                "arbres_par_km2": 0,
+                "parcs_et_jardins": 0,
+                "annee": 2024
+            }
+    
+    def _clean_transports_data(self, transports: Dict) -> Dict:
+        """Nettoie les données de transports publics."""
+        try:
+            stations_metro = max(0, int(transports.get("stations_metro", 0)))
+            stations_rer = max(0, int(transports.get("stations_rer", 0)))
+            arrets_bus = max(0, int(transports.get("arrets_bus", 0)))
+            lignes_metro = max(0, int(transports.get("lignes_metro", 0)))
+            lignes_bus = max(0, int(transports.get("lignes_bus", 0)))
+            total_transports = stations_metro + stations_rer + arrets_bus
+            
+            return {
+                "stations_metro": stations_metro,
+                "stations_rer": stations_rer,
+                "arrets_bus": arrets_bus,
+                "lignes_metro": lignes_metro,
+                "lignes_bus": lignes_bus,
+                "total_transports": total_transports,
+                "annee": int(transports.get("annee", 2024))
+            }
+        except Exception:
+            return {
+                "stations_metro": 0,
+                "stations_rer": 0,
+                "arrets_bus": 0,
+                "lignes_metro": 0,
+                "lignes_bus": 0,
+                "total_transports": 0,
+                "annee": 2024
+            }
+    
     def silver_to_gold(self, silver_data: Dict) -> Optional[Dict]:
         """
         Transforme les données Silver en Gold (données clean prêtes à utiliser).
@@ -414,6 +515,8 @@ class DataProcessor:
                 "delits_enregistres": arr.get("delits_enregistres", {}),
                 "revenus_moyens": arr.get("revenus_moyens", {}),
                 "densite_population": arr.get("densite_population", {}),
+                "vegetation_arbres": arr.get("vegetation_arbres", {}),
+                "transports_publics": arr.get("transports_publics", {}),
                 "metadata": arr.get("metadata", {})
             }
             

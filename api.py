@@ -216,19 +216,23 @@ async def get_logements_sociaux(arrondissement: Optional[int] = None):
 
 @app.get("/typologie")
 async def get_typologie(arrondissement: Optional[int] = None):
-    """Retourne la répartition par typologie de logements."""
+    """Retourne la répartition détaillée par typologie de logements (appartement/maison, nombre de pièces)."""
     data = load_data()
     arrondissements = data.get("arrondissements", [])
     
     result = []
     for arr in arrondissements:
-        if arrondissement and arr["arrondissement"] != arr["arrondissement"]:
+        if arrondissement and arr["arrondissement"] != arrondissement:
             continue
         
+        typologie = arr.get("typologie", {})
         result.append({
             "arrondissement": arr["arrondissement"],
             "nom": arr["nom"],
-            "typologie": arr.get("typologie", {})
+            "type_logement": typologie.get("type_logement", {}),
+            "repartition_pieces": typologie.get("repartition_pieces", {}),
+            "detail_pieces": typologie.get("detail_pieces", {}),
+            "statistiques": typologie.get("statistiques", {})
         })
     
     return {"data": result, "timestamp": data.get("timestamp")}
@@ -465,6 +469,59 @@ async def get_densite(arrondissement: Optional[int] = None):
             "densite_km2": densite.get("densite_km2"),
             "superficie_km2": densite.get("superficie_km2"),
             "annee": densite.get("annee")
+        })
+    
+    return {"data": result, "timestamp": data.get("timestamp")}
+
+
+@app.get("/vegetation")
+async def get_vegetation(arrondissement: Optional[int] = None):
+    """Retourne les données de végétation et arbres."""
+    data = load_data()
+    arrondissements = data.get("arrondissements", [])
+    
+    result = []
+    for arr in arrondissements:
+        if arrondissement and arr["arrondissement"] != arrondissement:
+            continue
+        
+        vegetation = arr.get("vegetation_arbres", {})
+        result.append({
+            "arrondissement": arr["arrondissement"],
+            "nom": arr["nom"],
+            "nombre_arbres": vegetation.get("nombre_arbres"),
+            "surface_espaces_verts_ha": vegetation.get("surface_espaces_verts_ha"),
+            "pourcentage_vegetation": vegetation.get("pourcentage_vegetation"),
+            "arbres_par_km2": vegetation.get("arbres_par_km2"),
+            "parcs_et_jardins": vegetation.get("parcs_et_jardins"),
+            "annee": vegetation.get("annee")
+        })
+    
+    return {"data": result, "timestamp": data.get("timestamp")}
+
+
+@app.get("/transports")
+async def get_transports(arrondissement: Optional[int] = None):
+    """Retourne les données de transports publics."""
+    data = load_data()
+    arrondissements = data.get("arrondissements", [])
+    
+    result = []
+    for arr in arrondissements:
+        if arrondissement and arr["arrondissement"] != arrondissement:
+            continue
+        
+        transports = arr.get("transports_publics", {})
+        result.append({
+            "arrondissement": arr["arrondissement"],
+            "nom": arr["nom"],
+            "stations_metro": transports.get("stations_metro"),
+            "stations_rer": transports.get("stations_rer"),
+            "arrets_bus": transports.get("arrets_bus"),
+            "lignes_metro": transports.get("lignes_metro"),
+            "lignes_bus": transports.get("lignes_bus"),
+            "total_transports": transports.get("total_transports"),
+            "annee": transports.get("annee")
         })
     
     return {"data": result, "timestamp": data.get("timestamp")}

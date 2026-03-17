@@ -95,6 +95,14 @@
                             <span class="indicator-icon">💵</span>
                             <span class="indicator-label">Revenus</span>
                         </div>
+                        <div class="indicator-item" data-indicator="vegetation">
+                            <span class="indicator-icon">🌳</span>
+                            <span class="indicator-label">Végétation</span>
+                        </div>
+                        <div class="indicator-item" data-indicator="transports">
+                            <span class="indicator-icon">🚇</span>
+                            <span class="indicator-label">Transports</span>
+                        </div>
                     </div>
                 </div>
 
@@ -139,6 +147,10 @@
                 <h3>🎨 Répartition par Typologie</h3>
                 <canvas id="typology-chart"></canvas>
             </div>
+            <div class="chart-card">
+                <h3>🚇 Répartition des Transports</h3>
+                <canvas id="transports-chart"></canvas>
+            </div>
         </div>
 
         <!-- Tooltip -->
@@ -147,6 +159,7 @@
 
     <script src="static/js/paris_detailed_polygons.js"></script>
     <script src="static/js/paris_official_polygons.js"></script>
+    <script src="static/js/transports_data.js"></script>
     <script src="static/js/app.js"></script>
 </body>
 </html>

@@ -21,6 +21,7 @@ const arrondissementCoords = {
 
 document.addEventListener('DOMContentLoaded', async () => {
     await loadPolygons();
+    loadTransportsData(); // Plus besoin d'async
     initializeMap();
     await loadData();
     initializeCharts();
@@ -42,29 +43,44 @@ async function loadData() {
 }
 
 function initializeMap() {
-    map = new maplibregl.Map({
-        container: 'map',
-        style: {
-            version: 8,
-            sources: {
-                'osm': {
+    console.log('Initialisation de la carte...');
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) {
+        console.error('❌ Conteneur #map non trouvé!');
+        return;
+    }
+    
+    console.log('Conteneur #map trouvé, création de la carte...');
+    
+    try {
+        map = new maplibregl.Map({
+            container: 'map',
+            style: {
+                version: 8,
+                sources: {
+                    'osm': {
+                        type: 'raster',
+                        tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                        tileSize: 256,
+                        attribution: '© OpenStreetMap'
+                    }
+                },
+                layers: [{
+                    id: 'osm',
                     type: 'raster',
-                    tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-                    tileSize: 256,
-                    attribution: '© OpenStreetMap'
-                }
+                    source: 'osm'
+                }]
             },
-            layers: [{
-                id: 'osm',
-                type: 'raster',
-                source: 'osm'
-            }]
-        },
-        center: [2.3522, 48.8566],
-        zoom: 12,
-        pitch: 0,
-        bearing: 0
-    });
+            center: [2.3522, 48.8566],
+            zoom: 12,
+            pitch: 0,
+            bearing: 0
+        });
+        console.log('✅ Carte créée avec succès');
+    } catch (error) {
+        console.error('❌ Erreur lors de la création de la carte:', error);
+        return;
+    }
 
     map.addControl(new maplibregl.NavigationControl(), 'top-right');
 
@@ -553,6 +569,8 @@ async function updateMap() {
         if (selectedIndicator === 'logements') defaultValue = 15;
         if (selectedIndicator === 'pollution') defaultValue = 5;
         if (selectedIndicator === 'revenus') defaultValue = 30000;
+        if (selectedIndicator === 'vegetation') defaultValue = 1000;
+        if (selectedIndicator === 'transports') defaultValue = 20;
         
         let value = defaultValue;
         if (arrData) {
@@ -586,6 +604,20 @@ async function updateMap() {
         if (map.getLayer('arrondissements-fill')) {
             const colorExpression = getColorExpressionForIndicator(selectedIndicator);
             map.setPaintProperty('arrondissements-fill', 'fill-color', colorExpression);
+            map.setPaintProperty('arrondissements-fill', 'fill-outline-color', '#000000');
+        }
+        if (map.getLayer('arrondissements-outline-thick')) {
+            map.setPaintProperty('arrondissements-outline-thick', 'line-width', [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                10, 8,
+                12, 10,
+                14, 12,
+                16, 15
+            ]);
+            map.setPaintProperty('arrondissements-outline-thick', 'line-color', '#000000');
+            map.setPaintProperty('arrondissements-outline-thick', 'line-opacity', 1);
         }
         if (map.getLayer('arrondissements-outline')) {
             map.setPaintProperty('arrondissements-outline', 'line-width', [
@@ -597,18 +629,20 @@ async function updateMap() {
                 14, 6,
                 16, 7
             ]);
+            map.setPaintProperty('arrondissements-outline', 'line-color', '#000000');
+            map.setPaintProperty('arrondissements-outline', 'line-opacity', 1);
         }
         
-        if (map.getLayer('arrondissements-stroke')) {
-            map.setPaintProperty('arrondissements-stroke', 'line-width', [
-                'interpolate',
-                ['linear'],
-                ['zoom'],
-                10, 3,
-                12, 4,
-                14, 5,
-                16, 6
-            ]);
+        // Afficher les arbres si l'indicateur végétation est sélectionné
+        if (selectedIndicator === 'vegetation') {
+            updateTreeMarkers();
+            removeTransportMarkers();
+        } else if (selectedIndicator === 'transports') {
+            updateTransportMarkers();
+            removeTreeMarkers();
+        } else {
+            removeTreeMarkers();
+            removeTransportMarkers();
         }
     } else {
         map.addSource('arrondissements', {
@@ -624,79 +658,58 @@ async function updateMap() {
                 'fill-color': getColorExpressionForIndicator(selectedIndicator),
                 'fill-opacity': [
                     'case',
-                    ['has', 'value'], 0.65,
+                    ['has', 'value'], 0.7,
                     0.5
-                ]
+                ],
+                'fill-outline-color': '#000000'
             }
         });
 
         map.addLayer({
-            id: 'arrondissements-outline',
+            id: 'arrondissements-outline-thick',
             type: 'line',
             source: 'arrondissements',
+            layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+            },
             paint: {
                 'line-color': '#000000',
                 'line-width': [
                     'interpolate',
                     ['linear'],
                     ['zoom'],
-                    10, 5,
-                    12, 6,
-                    14, 7,
-                    16, 8
+                    10, 8,
+                    12, 10,
+                    14, 12,
+                    16, 15
                 ],
-                'line-opacity': 1,
-                'line-join': 'round',
-                'line-cap': 'round'
+                'line-opacity': 1
             }
-        });
+        }, 'arrondissements-fill');
         
         map.addLayer({
-            id: 'arrondissements-stroke',
+            id: 'arrondissements-outline',
             type: 'line',
             source: 'arrondissements',
+            layout: {
+                'line-join': 'round',
+                'line-cap': 'round'
+            },
             paint: {
-                'line-color': '#ffffff',
+                'line-color': '#000000',
                 'line-width': [
                     'interpolate',
                     ['linear'],
                     ['zoom'],
-                    10, 3,
-                    12, 3.5,
-                    14, 4,
-                    16, 4.5
+                    10, 4,
+                    12, 5,
+                    14, 6,
+                    16, 7
                 ],
-                'line-opacity': 1,
-                'line-join': 'round',
-                'line-cap': 'round'
+                'line-opacity': 1
             }
-        }, 'arrondissements-outline');
-
-        map.addLayer({
-            id: 'arrondissements-labels',
-            type: 'symbol',
-            source: 'arrondissements',
-            layout: {
-                'text-field': ['concat', ['get', 'arrondissement'], 'e'],
-                'text-font': ['Inter Bold', 'Arial Unicode MS Bold'],
-                'text-size': [
-                    'interpolate',
-                    ['linear'],
-                    ['zoom'],
-                    10, 11,
-                    12, 13,
-                    14, 15
-                ],
-                'text-allow-overlap': false,
-                'text-ignore-placement': false
-            },
-            paint: {
-                'text-color': '#ffffff',
-                'text-halo-color': 'rgba(0, 0, 0, 0.8)',
-                'text-halo-width': 2.5,
-                'text-halo-blur': 1
-            }
-        });
+        }, 'arrondissements-outline-thick');
     }
 
     // Garder la carte droite (pas d'animation si déjà droite)
@@ -707,6 +720,305 @@ async function updateMap() {
             bearing: 0
         });
     }
+    
+    // Afficher les arbres si l'indicateur végétation est sélectionné
+    if (selectedIndicator === 'vegetation') {
+        updateTreeMarkers();
+        removeTransportMarkers();
+    } else if (selectedIndicator === 'transports') {
+        updateTransportMarkers();
+        removeTreeMarkers();
+    } else {
+        removeTreeMarkers();
+        removeTransportMarkers();
+    }
+}
+
+let treeMarkers = [];
+
+function updateTreeMarkers() {
+    removeTreeMarkers();
+    
+    if (!allData || !map) {
+        console.log('updateTreeMarkers: allData ou map manquant');
+        return;
+    }
+    
+    console.log('updateTreeMarkers: Affichage des arbres pour indicateur:', selectedIndicator);
+    
+    allData.forEach(arr => {
+        const vegetation = arr.vegetation_arbres || {};
+        const nombreArbres = vegetation.nombre_arbres || 0;
+        
+        console.log(`Arrondissement ${arr.arrondissement}: ${nombreArbres} arbres`);
+        
+        if (nombreArbres > 0) {
+            const coords = arrondissementCoords[arr.arrondissement];
+            if (coords) {
+                // Calculer le nombre d'arbres à afficher (1 arbre pour ~150 arbres réels, max 20 arbres)
+                const nbArbresAffiches = Math.min(Math.max(1, Math.floor(nombreArbres / 150)), 20);
+                
+                // Taille de base selon le nombre d'arbres (plus d'arbres = plus gros)
+                let baseSize = 16;
+                if (nombreArbres >= 3000) baseSize = 32;
+                else if (nombreArbres >= 2000) baseSize = 28;
+                else if (nombreArbres >= 1000) baseSize = 24;
+                else if (nombreArbres >= 500) baseSize = 20;
+                
+                // Disperser les arbres dans l'arrondissement
+                for (let i = 0; i < nbArbresAffiches; i++) {
+                    // Variation aléatoire autour du centre (environ 0.01° = ~1km)
+                    const variationLat = (Math.random() - 0.5) * 0.015;
+                    const variationLng = (Math.random() - 0.5) * 0.015;
+                    
+                    const treeCoords = [
+                        coords[1] + variationLng,
+                        coords[0] + variationLat
+                    ];
+                    
+                    // Légère variation de taille pour plus de réalisme
+                    const sizeVariation = 0.8 + Math.random() * 0.4; // Entre 80% et 120%
+                    const iconSize = Math.round(baseSize * sizeVariation);
+                    
+                    const el = document.createElement('div');
+                    el.className = 'tree-marker';
+                    el.style.width = iconSize + 'px';
+                    el.style.height = iconSize + 'px';
+                    el.style.backgroundImage = 'url(./static/images/tree-icon.svg)';
+                    el.style.backgroundSize = 'contain';
+                    el.style.backgroundRepeat = 'no-repeat';
+                    el.style.backgroundPosition = 'center';
+                    el.style.cursor = 'pointer';
+                    el.style.userSelect = 'none';
+                    el.style.pointerEvents = 'auto';
+                    el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
+                    el.style.display = 'block';
+                    el.style.border = 'none';
+                    el.style.backgroundColor = 'transparent';
+                    el.style.boxShadow = 'none';
+                    el.title = `${arr.arrondissement}e: ${nombreArbres} arbres`;
+                    
+                    const marker = new maplibregl.Marker({
+                        element: el,
+                        anchor: 'center'
+                    })
+                        .setLngLat(treeCoords)
+                        .addTo(map);
+                    
+                    treeMarkers.push(marker);
+                }
+            }
+        }
+    });
+    
+    console.log(`Total arbres affichés: ${treeMarkers.length}`);
+}
+
+function removeTreeMarkers() {
+    treeMarkers.forEach(marker => marker.remove());
+    treeMarkers = [];
+}
+
+let transportMarkers = [];
+let transportsData = null;
+
+function loadTransportsData() {
+    // Utiliser les données intégrées directement dans le JavaScript pour éviter CORS
+    if (typeof TRANSPORTS_DATA !== 'undefined') {
+        transportsData = TRANSPORTS_DATA;
+        const total = Object.values(transportsData.transports_by_arrondissement || {}).reduce((sum, arr) => {
+            return sum + (arr.metro?.length || 0) + (arr.rer?.length || 0) + (arr.bus?.length || 0);
+        }, 0);
+        console.log(`✅ Données de transport chargées: ${total} transports avec coordonnées réelles`);
+    } else {
+        console.warn('⚠️ TRANSPORTS_DATA non défini, utilisation de données par défaut');
+    }
+}
+
+function updateTransportMarkers() {
+    removeTransportMarkers();
+    
+    if (!allData || !map) {
+        console.log('updateTransportMarkers: allData ou map manquant');
+        return;
+    }
+    
+    console.log('updateTransportMarkers: Affichage des transports pour indicateur:', selectedIndicator);
+    
+    // Utiliser les données réelles si disponibles
+    if (transportsData && transportsData.transports_by_arrondissement) {
+        const transportsByArr = transportsData.transports_by_arrondissement;
+        let totalCount = 0;
+        
+        for (let arrNum = 1; arrNum <= 20; arrNum++) {
+            const arrTransports = transportsByArr[arrNum];
+            if (!arrTransports) continue;
+            
+            // Afficher toutes les stations de métro avec leurs coordonnées réelles EXACTES
+            arrTransports.metro.forEach(station => {
+                if (!station.lat || !station.lon) {
+                    console.warn(`Station métro ${station.name} sans coordonnées`);
+                    return;
+                }
+                
+                const iconSize = 28;
+                const el = createTransportIcon('metro', iconSize, `${station.name} (${station.lat.toFixed(4)}, ${station.lon.toFixed(4)})`);
+                
+                // Utiliser les coordonnées EXACTES : [longitude, latitude] pour MapLibre
+                const marker = new maplibregl.Marker({
+                    element: el,
+                    anchor: 'center'
+                })
+                    .setLngLat([station.lon, station.lat])  // [lon, lat] - ordre correct pour MapLibre
+                    .addTo(map);
+                
+                transportMarkers.push(marker);
+                totalCount++;
+                console.log(`Métro: ${station.name} à [${station.lon}, ${station.lat}]`);
+            });
+            
+            // Afficher toutes les stations RER avec leurs coordonnées réelles EXACTES
+            arrTransports.rer.forEach(station => {
+                if (!station.lat || !station.lon) {
+                    console.warn(`Station RER ${station.name} sans coordonnées`);
+                    return;
+                }
+                
+                const iconSize = 30;
+                const el = createTransportIcon('rer', iconSize, `${station.name} (${station.lat.toFixed(4)}, ${station.lon.toFixed(4)})`);
+                
+                // Utiliser les coordonnées EXACTES : [longitude, latitude] pour MapLibre
+                const marker = new maplibregl.Marker({
+                    element: el,
+                    anchor: 'center'
+                })
+                    .setLngLat([station.lon, station.lat])  // [lon, lat] - ordre correct pour MapLibre
+                    .addTo(map);
+                
+                transportMarkers.push(marker);
+                totalCount++;
+                console.log(`RER: ${station.name} à [${station.lon}, ${station.lat}]`);
+            });
+            
+            // Afficher les arrêts de bus avec leurs coordonnées réelles EXACTES
+            arrTransports.bus.forEach(stop => {
+                if (!stop.lat || !stop.lon) {
+                    console.warn(`Arrêt bus ${stop.name} sans coordonnées`);
+                    return;
+                }
+                
+                const iconSize = 20;
+                const el = createTransportIcon('bus', iconSize, `${stop.name} (${stop.lat.toFixed(4)}, ${stop.lon.toFixed(4)})`);
+                
+                // Utiliser les coordonnées EXACTES : [longitude, latitude] pour MapLibre
+                const marker = new maplibregl.Marker({
+                    element: el,
+                    anchor: 'center'
+                })
+                    .setLngLat([stop.lon, stop.lat])  // [lon, lat] - ordre correct pour MapLibre
+                    .addTo(map);
+                
+                transportMarkers.push(marker);
+                totalCount++;
+            });
+        }
+        
+        console.log(`✅ Total transports affichés avec coordonnées RÉELLES: ${totalCount} (${transportMarkers.length} marqueurs)`);
+        return;
+    } else {
+        console.warn('⚠️ Données de transport non chargées, utilisation du fallback');
+    }
+    
+    // Fallback: utiliser les données générées avec coordonnées aléatoires
+    allData.forEach(arr => {
+        const transports = arr.transports_publics || {};
+        const totalTransports = transports.total_transports || 0;
+        const stationsMetro = transports.stations_metro || 0;
+        const stationsRer = transports.stations_rer || 0;
+        const arretsBus = transports.arrets_bus || 0;
+        
+        if (totalTransports > 0) {
+            const coords = arrondissementCoords[arr.arrondissement];
+            if (coords) {
+                // Calculer le nombre de marqueurs à afficher (1 pour ~10 transports, max 15)
+                const nbMarqueurs = Math.min(Math.max(1, Math.floor(totalTransports / 10)), 15);
+                
+                // Taille de base selon le nombre de transports
+                let baseSize = 18;
+                if (totalTransports >= 50) baseSize = 32;
+                else if (totalTransports >= 30) baseSize = 28;
+                else if (totalTransports >= 15) baseSize = 24;
+                else if (totalTransports >= 5) baseSize = 20;
+                
+                // Disperser les transports dans l'arrondissement
+                for (let i = 0; i < nbMarqueurs; i++) {
+                    const variationLat = (Math.random() - 0.5) * 0.015;
+                    const variationLng = (Math.random() - 0.5) * 0.015;
+                    
+                    const transportCoords = [
+                        coords[1] + variationLng,
+                        coords[0] + variationLat
+                    ];
+                    
+                    const sizeVariation = 0.8 + Math.random() * 0.4;
+                    const iconSize = Math.round(baseSize * sizeVariation);
+                    
+                    // Choisir le type de transport selon les proportions
+                    let transportType = 'bus';
+                    const rand = Math.random();
+                    if (stationsMetro > 0 && rand < (stationsMetro / totalTransports)) {
+                        transportType = 'metro';
+                    } else if (stationsRer > 0 && rand < ((stationsMetro + stationsRer) / totalTransports)) {
+                        transportType = 'rer';
+                    }
+                    
+                    const el = createTransportIcon(transportType, iconSize, `${arr.arrondissement}e arrondissement`);
+                    
+                    const marker = new maplibregl.Marker({
+                        element: el,
+                        anchor: 'center'
+                    })
+                        .setLngLat(transportCoords)
+                        .addTo(map);
+                    
+                    transportMarkers.push(marker);
+                }
+            }
+        }
+    });
+    
+    console.log(`Total transports affichés: ${transportMarkers.length}`);
+}
+
+function createTransportIcon(type, size, title) {
+    const iconFile = type === 'metro' ? 'metro-icon.svg' : 
+                    type === 'rer' ? 'rer-icon.svg' : 
+                    'bus-icon.svg';
+    
+    const el = document.createElement('div');
+    el.className = 'transport-marker';
+    el.style.width = size + 'px';
+    el.style.height = size + 'px';
+    el.style.backgroundImage = `url(./static/images/${iconFile})`;
+    el.style.backgroundSize = 'contain';
+    el.style.backgroundRepeat = 'no-repeat';
+    el.style.backgroundPosition = 'center';
+    el.style.cursor = 'pointer';
+    el.style.userSelect = 'none';
+    el.style.pointerEvents = 'auto';
+    el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
+    el.style.display = 'block';
+    el.style.border = 'none';
+    el.style.backgroundColor = 'transparent';
+    el.style.boxShadow = 'none';
+    el.title = title;
+    
+    return el;
+}
+
+function removeTransportMarkers() {
+    transportMarkers.forEach(marker => marker.remove());
+    transportMarkers = [];
 }
 
 // Obtenir l'expression de couleur pour MapLibre selon l'indicateur
@@ -744,6 +1056,24 @@ function getColorExpressionForIndicator(indicator) {
                 ['>=', ['get', 'value'], 30000], '#3b82f6', // Bleu (moyen-élevé)
                 ['>=', ['get', 'value'], 25000], '#f59e0b', // Orange (moyen)
                 '#ef4444'  // Rouge (bas)
+            ];
+        case 'vegetation':
+            return [
+                'case',
+                ['>=', ['get', 'value'], 3000], '#10b981',   // Vert foncé (beaucoup d'arbres)
+                ['>=', ['get', 'value'], 2000], '#22c55e',   // Vert (moyen-élevé)
+                ['>=', ['get', 'value'], 1000], '#84cc16',   // Vert clair (moyen)
+                ['>=', ['get', 'value'], 500], '#eab308',    // Jaune (peu)
+                '#f59e0b'  // Orange (très peu)
+            ];
+        case 'transports':
+            return [
+                'case',
+                ['>=', ['get', 'value'], 50], '#3b82f6',    // Bleu (beaucoup de transports)
+                ['>=', ['get', 'value'], 30], '#6366f1',     // Indigo (moyen-élevé)
+                ['>=', ['get', 'value'], 15], '#8b5cf6',     // Violet (moyen)
+                ['>=', ['get', 'value'], 5], '#a855f7',     // Violet clair (peu)
+                '#c084fc'  // Violet très clair (très peu)
             ];
         default:
             return [
@@ -787,6 +1117,22 @@ function getColorForIndicator(indicator, value) {
             if (value >= 25000) return '#f59e0b'; // Orange (moyen)
             return '#ef4444'; // Rouge (bas)
             
+        case 'vegetation':
+            // Végétation : nombre d'arbres (0-5000)
+            if (value >= 3000) return '#10b981';   // Vert foncé (beaucoup)
+            if (value >= 2000) return '#22c55e';     // Vert (moyen-élevé)
+            if (value >= 1000) return '#84cc16';    // Vert clair (moyen)
+            if (value >= 500) return '#eab308';     // Jaune (peu)
+            return '#f59e0b'; // Orange (très peu)
+            
+        case 'transports':
+            // Transports : total stations/arrêts (0-70+)
+            if (value >= 50) return '#3b82f6';     // Bleu (beaucoup)
+            if (value >= 30) return '#6366f1';      // Indigo (moyen-élevé)
+            if (value >= 15) return '#8b5cf6';      // Violet (moyen)
+            if (value >= 5) return '#a855f7';       // Violet clair (peu)
+            return '#c084fc'; // Violet très clair (très peu)
+            
         default:
             return '#6b7280'; // Gris par défaut
     }
@@ -804,6 +1150,10 @@ function getIndicatorValue(arr, indicator, year) {
             return arr.pollution_qualite_air?.indice_atmo || 0;
         case 'revenus':
             return arr.revenus_moyens?.revenu_median_menage || 0;
+        case 'vegetation':
+            return arr.vegetation_arbres?.nombre_arbres || 0;
+        case 'transports':
+            return arr.transports_publics?.total_transports || 0;
         default:
             return arr.statistiques?.prix_m2_actuel || 0;
     }
@@ -881,6 +1231,61 @@ function updateSelectedInfo(arr) {
                 <span class="info-label">Revenu médian</span>
                 <span class="info-value">${arr.revenus_moyens?.revenu_median_menage?.toLocaleString('fr-FR') || 'N/A'}€</span>
             </div>
+            ${getTransportsInfoHTML(arr)}
+        </div>
+    `;
+}
+
+function getTransportsInfoHTML(arr) {
+    const transports = arr.transports_publics || {};
+    const stationsMetro = transports.stations_metro || 0;
+    const stationsRer = transports.stations_rer || 0;
+    const arretsBus = transports.arrets_bus || 0;
+    const lignesMetro = transports.lignes_metro || 0;
+    const lignesBus = transports.lignes_bus || 0;
+    const totalTransports = transports.total_transports || 0;
+    
+    if (totalTransports === 0) {
+        return '';
+    }
+    
+    return `
+        <div class="transports-section">
+            <div class="transports-title">🚇 Transports Publics</div>
+            <div class="transports-grid">
+                <div class="transport-card metro">
+                    <div class="transport-icon">🚇</div>
+                    <div class="transport-info">
+                        <div class="transport-label">Métro</div>
+                        <div class="transport-stats">
+                            <span class="transport-count">${stationsMetro} stations</span>
+                            <span class="transport-lines">${lignesMetro} lignes</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="transport-card rer">
+                    <div class="transport-icon">🚆</div>
+                    <div class="transport-info">
+                        <div class="transport-label">RER</div>
+                        <div class="transport-stats">
+                            <span class="transport-count">${stationsRer} stations</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="transport-card bus">
+                    <div class="transport-icon">🚌</div>
+                    <div class="transport-info">
+                        <div class="transport-label">Bus</div>
+                        <div class="transport-stats">
+                            <span class="transport-count">${arretsBus} arrêts</span>
+                            <span class="transport-lines">${lignesBus} lignes</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="transport-total">
+                <span>Total: ${totalTransports} points d'accès</span>
+            </div>
         </div>
     `;
 }
@@ -916,6 +1321,7 @@ function initializeCharts() {
     updateTimelineChart();
     updateComparisonChart();
     updateTypologyChart();
+    updateTransportsChart();
 }
 
 // Graphique timeline
@@ -1046,33 +1452,58 @@ function updateComparisonChart() {
 
 // Graphique typologie
 function updateTypologyChart() {
-    const ctx = document.getElementById('typology-chart').getContext('2d');
+    const chartElement = document.getElementById('typology-chart');
+    if (!chartElement) {
+        console.warn('Element typology-chart non trouvé');
+        return;
+    }
+    
+    const ctx = chartElement.getContext('2d');
     
     if (charts.typology) {
         charts.typology.destroy();
     }
 
-    if (!allData) return;
+    if (!allData || allData.length === 0) {
+        console.warn('Aucune donnée disponible pour le graphique typologie');
+        return;
+    }
 
     const arr = selectedArr ? allData.find(a => a.arrondissement === selectedArr) : allData[0];
-    if (!arr) return;
+    if (!arr) {
+        console.warn('Arrondissement non trouvé pour le graphique typologie');
+        return;
+    }
 
     const typology = arr.typologie || {};
-    const labels = Object.keys(typology);
-    const data = Object.values(typology);
+    console.log('Typologie pour arrondissement', arr.arrondissement, ':', typology);
+    
+    // Utiliser la nouvelle structure : repartition_pieces
+    const repartition = typology.repartition_pieces || {};
+    const labels = Object.keys(repartition);
+    const data = Object.values(repartition);
+    
+    if (labels.length === 0 || data.length === 0) {
+        console.warn('Aucune donnée de répartition disponible:', repartition);
+        return;
+    }
+    
+    console.log('Labels:', labels, 'Data:', data);
 
-    charts.typology = new Chart(ctx, {
+    try {
+        charts.typology = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: labels,
             datasets: [{
+                label: 'Répartition (%)',
                 data: data,
                 backgroundColor: [
-                    '#6366f1',
-                    '#8b5cf6',
-                    '#ec4899',
-                    '#f59e0b',
-                    '#10b981'
+                    '#6366f1',  // Studio
+                    '#8b5cf6',  // T2
+                    '#ec4899',  // T3
+                    '#f59e0b',  // T4
+                    '#10b981'   // T5+
                 ]
             }]
         },
@@ -1083,18 +1514,192 @@ function updateTypologyChart() {
                 legend: {
                     position: 'bottom',
                     labels: {
-                        color: '#cbd5e1'
+                        color: '#cbd5e1',
+                        padding: 15,
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const typeLogement = typology.type_logement || {};
+                            const total = typeLogement.total_logements || 0;
+                            const detail = typology.detail_pieces || {};
+                            
+                            // Trouver le détail correspondant
+                            let detailInfo = '';
+                            for (const [key, info] of Object.entries(detail)) {
+                                if (info.type === label) {
+                                    detailInfo = ` (${info.nombre.toLocaleString('fr-FR')} logements)`;
+                                    break;
+                                }
+                            }
+                            
+                            return `${label}: ${value.toFixed(1)}%${detailInfo}`;
+                        }
                     }
                 }
             }
         }
     });
+    } catch (error) {
+        console.error('Erreur lors de la création du graphique typologie:', error);
+        // Afficher un message d'erreur dans le canvas
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Erreur: Impossible d\'afficher le graphique', ctx.canvas.width / 2, ctx.canvas.height / 2);
+    }
+}
+
+// Graphique transports
+function updateTransportsChart() {
+    const chartElement = document.getElementById('transports-chart');
+    if (!chartElement) {
+        return;
+    }
+    
+    const ctx = chartElement.getContext('2d');
+    
+    if (charts.transports) {
+        charts.transports.destroy();
+    }
+
+    if (!allData || allData.length === 0) {
+        return;
+    }
+
+    const arr = selectedArr ? allData.find(a => a.arrondissement === selectedArr) : allData[0];
+    if (!arr) {
+        return;
+    }
+
+    const transports = arr.transports_publics || {};
+    const stationsMetro = transports.stations_metro || 0;
+    const stationsRer = transports.stations_rer || 0;
+    const arretsBus = transports.arrets_bus || 0;
+    const lignesMetro = transports.lignes_metro || 0;
+    const lignesBus = transports.lignes_bus || 0;
+    
+    if (stationsMetro === 0 && stationsRer === 0 && arretsBus === 0) {
+        return;
+    }
+
+    try {
+        charts.transports = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Métro', 'RER', 'Bus'],
+                datasets: [
+                    {
+                        label: 'Stations/Arrêts',
+                        data: [stationsMetro, stationsRer, arretsBus],
+                        backgroundColor: [
+                            '#003E7E',
+                            '#0066CC',
+                            '#FF6B00'
+                        ],
+                        borderColor: [
+                            '#002855',
+                            '#0052A3',
+                            '#E55A00'
+                        ],
+                        borderWidth: 2
+                    },
+                    {
+                        label: 'Lignes',
+                        data: [lignesMetro, 0, lignesBus],
+                        backgroundColor: [
+                            'rgba(0, 62, 126, 0.5)',
+                            'rgba(0, 102, 204, 0.5)',
+                            'rgba(255, 107, 0, 0.5)'
+                        ],
+                        borderColor: [
+                            '#003E7E',
+                            '#0066CC',
+                            '#FF6B00'
+                        ],
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#cbd5e1',
+                            padding: 15,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.dataset.label || '';
+                                const value = context.parsed.y || 0;
+                                const transportType = context.label;
+                                
+                                if (label === 'Stations/Arrêts') {
+                                    if (transportType === 'Métro') {
+                                        return `Stations métro: ${value}`;
+                                    } else if (transportType === 'RER') {
+                                        return `Stations RER: ${value}`;
+                                    } else {
+                                        return `Arrêts bus: ${value}`;
+                                    }
+                                } else {
+                                    if (transportType === 'Métro') {
+                                        return `Lignes métro: ${value}`;
+                                    } else if (transportType === 'Bus') {
+                                        return `Lignes bus: ${value}`;
+                                    }
+                                    return '';
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: '#cbd5e1',
+                            stepSize: 1
+                        },
+                        grid: {
+                            color: '#334155'
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            color: '#cbd5e1'
+                        },
+                        grid: {
+                            color: '#334155'
+                        }
+                    }
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Erreur lors de la création du graphique transports:', error);
+    }
 }
 
 function updateCharts() {
     updateTimelineChart();
     updateComparisonChart();
     updateTypologyChart();
+    updateTransportsChart();
 }
 
 // Configuration des événements
@@ -1114,6 +1719,12 @@ function setupEventListeners() {
             item.classList.add('active');
             selectedIndicator = item.dataset.indicator;
             updateMap();
+            // Forcer la mise à jour des arbres si végétation
+            if (selectedIndicator === 'vegetation') {
+                setTimeout(() => updateTreeMarkers(), 200);
+            } else {
+                removeTreeMarkers();
+            }
         });
     });
 
@@ -1143,13 +1754,18 @@ function setupEventListeners() {
     });
 
     // Timeline
-    document.getElementById('play-timeline').addEventListener('click', () => {
-        if (timelinePlaying) {
-            pauseTimeline();
-        } else {
-            playTimeline();
-        }
-    });
+    const timelineBtn = document.getElementById('play-timeline');
+    if (timelineBtn) {
+        timelineBtn.addEventListener('click', () => {
+            if (timelinePlaying) {
+                pauseTimeline();
+            } else {
+                playTimeline();
+            }
+        });
+    } else {
+        console.warn('Bouton timeline non trouvé');
+    }
 
     // Remplir les selects
     if (allData) {
@@ -1189,13 +1805,30 @@ function displayComparison(data) {
 
 // Timeline animée
 function playTimeline() {
+    if (timelinePlaying) return;
+    
     timelinePlaying = true;
     const years = [2022, 2023, 2024];
-    let yearIndex = 0;
+    let yearIndex = years.indexOf(selectedYear);
+    if (yearIndex === -1) yearIndex = 0;
+
+    const timelineBtn = document.getElementById('play-timeline');
+    if (timelineBtn) {
+        timelineBtn.innerHTML = '<span>⏸</span> Timeline';
+        timelineBtn.classList.add('playing');
+    }
+
+    if (timelineInterval) {
+        clearInterval(timelineInterval);
+    }
 
     timelineInterval = setInterval(() => {
         selectedYear = years[yearIndex];
-        document.getElementById('year-selector').value = selectedYear;
+        const yearSelector = document.getElementById('year-selector');
+        if (yearSelector) {
+            yearSelector.value = selectedYear;
+        }
+        
         updateMap();
         updateGlobalStats();
         updateCharts();
@@ -1208,6 +1841,13 @@ function pauseTimeline() {
     timelinePlaying = false;
     if (timelineInterval) {
         clearInterval(timelineInterval);
+        timelineInterval = null;
+    }
+    
+    const timelineBtn = document.getElementById('play-timeline');
+    if (timelineBtn) {
+        timelineBtn.innerHTML = '<span>▶</span> Timeline';
+        timelineBtn.classList.remove('playing');
     }
 }
 
@@ -1217,7 +1857,9 @@ function getIndicatorName(indicator) {
         'prix': 'Prix/m²',
         'logements': 'Logements sociaux',
         'pollution': 'Qualité air',
-        'revenus': 'Revenus'
+        'revenus': 'Revenus',
+        'vegetation': 'Végétation',
+        'transports': 'Transports'
     };
     return names[indicator] || indicator;
 }
@@ -1232,6 +1874,10 @@ function getIndicatorLabel(indicator, value) {
             return value.toFixed(1);
         case 'revenus':
             return value.toLocaleString('fr-FR') + '€';
+        case 'vegetation':
+            return value.toLocaleString('fr-FR') + ' arbres';
+        case 'transports':
+            return value.toLocaleString('fr-FR') + ' transports';
         default:
             return value;
     }

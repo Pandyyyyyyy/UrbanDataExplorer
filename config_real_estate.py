@@ -61,6 +61,31 @@ CUSTOM_INDICATORS_APIS = [
             # Note: Nécessite une clé API INSEE
             # "Authorization": "Bearer YOUR_INSEE_API_KEY"
         }
+    },
+    {
+        "name": "opendata_paris_vegetation",
+        "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/arbresremarquablesparis/records",
+        "description": "OpenData Paris - Arbres et végétation par arrondissement",
+        "source": "OpenData Paris",
+        "indicator": "vegetation_arbres"
+    },
+    {
+        "name": "opendata_paris_transports",
+        "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/stations-metro/records",
+        "description": "OpenData Paris - Transports en commun par arrondissement",
+        "source": "OpenData Paris / RATP",
+        "indicator": "transports_publics"
+    },
+    {
+        "name": "insee_typologie_logements",
+        "url": "https://api.insee.fr/donnees-locales/V0.1/donnees/geo-ARRONDISSEMENT_PLM@GEO2020RP2017/LOG@GEO2020RP2017",
+        "description": "INSEE - Typologie des logements (appartement/maison, nombre de pièces)",
+        "source": "INSEE",
+        "indicator": "typologie_logements",
+        "headers": {
+            # Note: Nécessite une clé API INSEE
+            # "Authorization": "Bearer YOUR_INSEE_API_KEY"
+        }
     }
 ]
 

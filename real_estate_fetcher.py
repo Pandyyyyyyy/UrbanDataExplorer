@@ -92,8 +92,32 @@ class RealEstateDataFetcher(DataFetcher):
                     "densite_km2": random.randint(15000, 50000),  # Habitants/km²
                     "superficie_km2": round(random.uniform(1.0, 6.0), 2),  # km²
                     "annee": 2023
+                },
+                "vegetation_arbres": {
+                    "nombre_arbres": random.randint(500, 5000),  # Nombre d'arbres
+                    "surface_espaces_verts_ha": round(random.uniform(5, 50), 2),  # Hectares
+                    "pourcentage_vegetation": round(random.uniform(5, 30), 2),  # % de surface végétalisée
+                    "arbres_par_km2": random.randint(100, 2000),  # Arbres/km²
+                    "parcs_et_jardins": random.randint(2, 15),  # Nombre de parcs/jardins
+                    "annee": 2024
+                },
+                "transports_publics": {
+                    "stations_metro": random.randint(2, 15),  # Nombre de stations métro
+                    "stations_rer": random.randint(0, 5),  # Nombre de stations RER
+                    "arrets_bus": random.randint(10, 50),  # Nombre d'arrêts de bus
+                    "lignes_metro": random.randint(1, 6),  # Nombre de lignes de métro
+                    "lignes_bus": random.randint(5, 20),  # Nombre de lignes de bus
+                    "total_transports": 0,  # Sera calculé
+                    "annee": 2024
                 }
             }
+            
+            # Calculer le total des transports
+            arr_data["transports_publics"]["total_transports"] = (
+                arr_data["transports_publics"]["stations_metro"] +
+                arr_data["transports_publics"]["stations_rer"] +
+                arr_data["transports_publics"]["arrets_bus"]
+            )
             
             # Prix/m² médian par mois (simulation avec tendance)
             base_price = random.uniform(8000, 15000)  # Prix de base selon l'arrondissement
@@ -110,16 +134,71 @@ class RealEstateDataFetcher(DataFetcher):
                         "prix_m2": round(price, 2)
                     })
             
-            # Typologie (répartition des logements)
+            # Typologie des logements (répartition détaillée)
+            # Type de logement (appartement vs maison)
+            pourcentage_appartements = random.uniform(85, 98)  # Paris est majoritairement des appartements
+            pourcentage_maisons = 100 - pourcentage_appartements
+            
+            # Répartition par nombre de pièces
             typologies = ["Studio", "T2", "T3", "T4", "T5+"]
             total = 100
+            repartition_pieces = {}
             for i, typo in enumerate(typologies):
                 if i == len(typologies) - 1:
                     percentage = total
                 else:
-                    percentage = random.uniform(5, 30)
+                    percentage = random.uniform(5, 35)
                     total -= percentage
-                arr_data["typologie"][typo] = round(percentage, 1)
+                repartition_pieces[typo] = round(percentage, 1)
+            
+            # Structure détaillée du parc
+            arr_data["typologie"] = {
+                # Type de logement
+                "type_logement": {
+                    "appartements": round(pourcentage_appartements, 1),
+                    "maisons": round(pourcentage_maisons, 1),
+                    "total_logements": random.randint(15000, 80000)
+                },
+                # Répartition par nombre de pièces
+                "repartition_pieces": repartition_pieces,
+                # Détail par nombre de pièces
+                "detail_pieces": {
+                    "1_piece": {
+                        "nombre": random.randint(2000, 15000),
+                        "pourcentage": repartition_pieces.get("Studio", 0),
+                        "type": "Studio"
+                    },
+                    "2_pieces": {
+                        "nombre": random.randint(3000, 20000),
+                        "pourcentage": repartition_pieces.get("T2", 0),
+                        "type": "T2"
+                    },
+                    "3_pieces": {
+                        "nombre": random.randint(4000, 25000),
+                        "pourcentage": repartition_pieces.get("T3", 0),
+                        "type": "T3"
+                    },
+                    "4_pieces": {
+                        "nombre": random.randint(2000, 15000),
+                        "pourcentage": repartition_pieces.get("T4", 0),
+                        "type": "T4"
+                    },
+                    "5_et_plus_pieces": {
+                        "nombre": random.randint(1000, 10000),
+                        "pourcentage": repartition_pieces.get("T5+", 0),
+                        "type": "T5+"
+                    }
+                },
+                # Statistiques du parc
+                "statistiques": {
+                    "nombre_total_logements": random.randint(15000, 80000),
+                    "logements_principaux": random.randint(12000, 70000),
+                    "logements_secondaires": random.randint(500, 5000),
+                    "logements_vacants": random.randint(500, 3000),
+                    "surface_moyenne_m2": round(random.uniform(35, 85), 1),
+                    "annee": 2024
+                }
+            }
             
             # Évolution annuelle
             for year in years:
