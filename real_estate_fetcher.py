@@ -12,6 +12,7 @@ from typing import Dict, List, Optional
 import time
 
 from data_fetcher import DataFetcher
+from public_data_integrations import PublicDataIntegrator
 
 logging.basicConfig(
     level=logging.INFO,
@@ -216,14 +217,22 @@ class RealEstateDataFetcher(DataFetcher):
     
     def fetch_real_estate_data(self) -> bool:
         """
-        Récupère les données immobilières.
-        Pour l'instant, génère des données d'exemple.
+        Récupère les données : base de repli + enrichissement APIs publiques.
         """
         logger.info("Récupération des données immobilières...")
-        
-        # Générer des données d'exemple
+        logger.info("Étape 1/2 : structure de base (repli si APIs indisponibles)...")
         data = self.generate_sample_data()
-        
+
+        logger.info("Étape 2/2 : intégration Data.gouv / OpenData Paris / INSEE...")
+        try:
+            integrator = PublicDataIntegrator(years=(2022, 2023, 2024))
+            data = integrator.enrich_bronze_data(data)
+            report = data.get("integration_report", {})
+            for name, info in report.items():
+                logger.info("  [%s] %s", name, info.get("status", info))
+        except Exception as e:
+            logger.error("Enrichissement APIs échoué, données de repli conservées : %s", e)
+
         # Sauvegarder
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"real_estate_data_{timestamp}.json"

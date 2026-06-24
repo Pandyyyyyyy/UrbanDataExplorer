@@ -22,6 +22,29 @@ logger = logging.getLogger(__name__)
 
 class TableExporter:
     """Classe pour exporter les tables prêtes pour la visualisation."""
+
+    @staticmethod
+    def _flatten_typologie(typologie: Dict) -> Dict[str, float]:
+        """Extrait les % par type de logement depuis la structure Gold."""
+        repartition = typologie.get("repartition_pieces") or {}
+        if not repartition and isinstance(typologie.get("Studio"), (int, float)):
+            repartition = typologie
+        return {
+            "typologie_studio": float(repartition.get("Studio", 0) or 0),
+            "typologie_t2": float(repartition.get("T2", 0) or 0),
+            "typologie_t3": float(repartition.get("T3", 0) or 0),
+            "typologie_t4": float(repartition.get("T4", 0) or 0),
+            "typologie_t5plus": float(repartition.get("T5+", 0) or 0),
+            "typologie_appartements_pct": float(
+                (typologie.get("type_logement") or {}).get("appartements", 0) or 0
+            ),
+            "typologie_maisons_pct": float(
+                (typologie.get("type_logement") or {}).get("maisons", 0) or 0
+            ),
+            "surface_moyenne_m2": float(
+                (typologie.get("statistiques") or {}).get("surface_moyenne_m2", 0) or 0
+            ),
+        }
     
     def __init__(self, gold_data_file: str = "data/gold/real_estate_data_gold_latest.json"):
         self.gold_data_file = Path(gold_data_file)
@@ -125,9 +148,8 @@ class TableExporter:
             # Logements sociaux
             logements_sociaux = arr.get("logements_sociaux_pourcentage", 0)
             
-            # Typologie
-            typologie = arr.get("typologie", {})
-            
+            typologie_cols = self._flatten_typologie(arr.get("typologie", {}))
+
             # Pollution
             pollution = arr.get("pollution_qualite_air", {})
             indice_atmo = pollution.get("indice_atmo")
@@ -176,12 +198,8 @@ class TableExporter:
                 
                 # Social
                 "logements_sociaux_pourcentage": logements_sociaux,
-                "typologie_studio": typologie.get("Studio", 0),
-                "typologie_t2": typologie.get("T2", 0),
-                "typologie_t3": typologie.get("T3", 0),
-                "typologie_t4": typologie.get("T4", 0),
-                "typologie_t5plus": typologie.get("T5+", 0),
-                
+                **typologie_cols,
+
                 # Pollution
                 "indice_atmo": indice_atmo,
                 "pm25_moyen": pm25,
@@ -218,7 +236,6 @@ class TableExporter:
         """
         logger.info("Creation du GeoJSON...")
         
-        # Coordonnées approximatives des arrondissements
         coords_map = {
             1: [48.8606, 2.3376], 2: [48.8698, 2.3412], 3: [48.8630, 2.3624],
             4: [48.8546, 2.3522], 5: [48.8448, 2.3447], 6: [48.8448, 2.3327],
@@ -226,13 +243,20 @@ class TableExporter:
             10: [48.8738, 2.3624], 11: [48.8630, 2.3768], 12: [48.8448, 2.3768],
             13: [48.8322, 2.3522], 14: [48.8330, 2.3264], 15: [48.8412, 2.2995],
             16: [48.8534, 2.2654], 17: [48.8838, 2.3214], 18: [48.8932, 2.3447],
-            19: [48.8838, 2.3768], 20: [48.8630, 2.3984]
+            19: [48.8838, 2.3768], 20: [48.8630, 2.3984],
         }
-        
+        geocoding_by_arr = {}
+        if self.data:
+            for arr in self.data.get("arrondissements", []):
+                geo = arr.get("geocoding") or {}
+                lon, lat = geo.get("longitude"), geo.get("latitude")
+                if lon is not None and lat is not None:
+                    geocoding_by_arr[int(arr["arrondissement"])] = [float(lat), float(lon)]
+
         features = []
         for _, row in df.iterrows():
             arr_num = int(row["arrondissement"])
-            coords = coords_map.get(arr_num, [48.8566, 2.3522])
+            coords = geocoding_by_arr.get(arr_num) or coords_map.get(arr_num, [48.8566, 2.3522])
             
             # Créer les propriétés (toutes les colonnes sauf geometry)
             properties = row.to_dict()
@@ -265,7 +289,10 @@ class TableExporter:
             return False
         
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        
+        parquet_path = None
+        parquet_fusion_path = None
+        parquet_ok = False
+
         # 1. Table prix par arrondissement et année
         df_prix = self.create_prix_table()
         
@@ -277,8 +304,12 @@ class TableExporter:
         # Export Parquet
         try:
             parquet_path = self.output_dir / f"prix_par_arrondissement_annee_{timestamp}.parquet"
+            latest_prix_parquet = self.output_dir / "prix_par_arrondissement_annee_latest.parquet"
             df_prix.to_parquet(parquet_path, index=False, engine='pyarrow')
+            df_prix.to_parquet(latest_prix_parquet, index=False, engine='pyarrow')
+            parquet_ok = True
             logger.info(f"[OK] Parquet exporte: {parquet_path}")
+            logger.info(f"[OK] Parquet latest: {latest_prix_parquet}")
         except Exception as e:
             logger.warning(f"Impossible d'exporter en Parquet (pyarrow non installe?): {e}")
         
@@ -293,8 +324,12 @@ class TableExporter:
         # Export Parquet
         try:
             parquet_fusion_path = self.output_dir / f"donnees_fusionnees_{timestamp}.parquet"
+            latest_fusion_parquet = self.output_dir / "donnees_fusionnees_latest.parquet"
             df_fusion.to_parquet(parquet_fusion_path, index=False, engine='pyarrow')
+            df_fusion.to_parquet(latest_fusion_parquet, index=False, engine='pyarrow')
+            parquet_ok = True
             logger.info(f"[OK] Parquet fusionne exporte: {parquet_fusion_path}")
+            logger.info(f"[OK] Parquet fusionne latest: {latest_fusion_parquet}")
         except Exception as e:
             logger.warning(f"Impossible d'exporter en Parquet: {e}")
         
@@ -318,7 +353,7 @@ class TableExporter:
         logger.info("  - prix_par_arrondissement_annee_latest.csv")
         logger.info("  - donnees_fusionnees_latest.csv")
         logger.info("  - donnees_fusionnees_latest.geojson")
-        if parquet_path.exists():
+        if parquet_ok:
             logger.info("  - prix_par_arrondissement_annee_latest.parquet")
             logger.info("  - donnees_fusionnees_latest.parquet")
         

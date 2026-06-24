@@ -18,6 +18,12 @@ data/export/*
 *.log
 data_fetcher.log
 
+# Cache APIs publiques
+data/bronze/raw_cache/
+
+# Secrets
+.env
+
 # Python
 __pycache__/
 *.py[cod]

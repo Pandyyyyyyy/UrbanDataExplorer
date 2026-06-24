@@ -36,13 +36,14 @@ def generate_data():
 def start_api():
     """Démarre l'API FastAPI."""
     print("🚀 Démarrage de l'API...")
-    print("📍 API disponible sur: http://localhost:8000")
-    print("📚 Documentation: http://localhost:8000/docs")
+    port = int(os.getenv("API_PORT", "8001"))
+    print(f"📍 API disponible sur: http://localhost:{port}")
+    print(f"📚 Documentation: http://localhost:{port}/docs")
     print("\nAppuyez sur Ctrl+C pour arrêter l'API\n")
     
     try:
         import uvicorn
-        uvicorn.run("api:app", host="0.0.0.0", port=8000, reload=True)
+        uvicorn.run("api:app", host="0.0.0.0", port=port, reload=True)
     except KeyboardInterrupt:
         print("\n\n👋 Arrêt de l'API")
     except Exception as e:

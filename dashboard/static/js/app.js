@@ -1,4 +1,110 @@
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = window.API_BASE_URL || 'http://localhost:8001';
+const MAP_OUTLINE = { light: '#e2e8f0', dark: '#0f172a' };
+/** Échelle cyan commune (prix, loyers, logements, etc.) */
+const MAP_BASE = ['#0c2d48', '#0e5a7a', '#0e94b8', '#38d9f5', '#a8ecff'];
+const AIR_GOOD_TO_BAD = ['#34d399', '#a3e635', '#fbbf24', '#f97316', '#ef4444'];
+const VEG_NONE_TO_DENSE = ['#64748b', '#94a3b8', '#86efac', '#22c55e', '#14532d'];
+
+function seqLtExpr(t1, t2, t3, t4) {
+    return [
+        'case',
+        ['<', ['get', 'value'], t1], MAP_BASE[0],
+        ['<', ['get', 'value'], t2], MAP_BASE[1],
+        ['<', ['get', 'value'], t3], MAP_BASE[2],
+        ['<', ['get', 'value'], t4], MAP_BASE[3],
+        MAP_BASE[4],
+    ];
+}
+
+function seqGteExpr(t1, t2, t3, t4) {
+    return [
+        'case',
+        ['>=', ['get', 'value'], t4], MAP_BASE[4],
+        ['>=', ['get', 'value'], t3], MAP_BASE[3],
+        ['>=', ['get', 'value'], t2], MAP_BASE[2],
+        ['>=', ['get', 'value'], t1], MAP_BASE[1],
+        MAP_BASE[0],
+    ];
+}
+
+function arrondissementLabel(n) {
+    return n === 1 ? '1er' : `${n}e`;
+}
+
+let arrondissementLabelMarkers = [];
+
+function removeArrondissementLabelMarkers() {
+    arrondissementLabelMarkers.forEach((m) => m.remove());
+    arrondissementLabelMarkers = [];
+}
+
+function ensureArrondissementLabels() {
+    if (!map) return;
+    removeArrondissementLabelMarkers();
+    Object.entries(arrondissementCoords).forEach(([num, [lat, lng]]) => {
+        const el = document.createElement('div');
+        el.className = 'arr-label';
+        el.textContent = arrondissementLabel(Number(num));
+        el.setAttribute('aria-hidden', 'true');
+        const wrap = document.createElement('div');
+        wrap.className = 'arr-label-wrap';
+        wrap.appendChild(el);
+        const marker = new maplibregl.Marker({ element: wrap, anchor: 'center' })
+            .setLngLat([lng, lat])
+            .addTo(map);
+        arrondissementLabelMarkers.push(marker);
+    });
+}
+
+function applyMapBorders() {
+    if (!map?.getLayer('arrondissements-outline-thick')) return;
+    map.setPaintProperty('arrondissements-outline-thick', 'line-color', MAP_OUTLINE.light);
+    map.setPaintProperty('arrondissements-outline-thick', 'line-opacity', 0.95);
+    map.setPaintProperty('arrondissements-outline-thick', 'line-width', [
+        'interpolate', ['linear'], ['zoom'], 10, 2.5, 12, 3, 14, 3.5, 16, 4,
+    ]);
+    map.setPaintProperty('arrondissements-outline', 'line-color', MAP_OUTLINE.dark);
+    map.setPaintProperty('arrondissements-outline', 'line-opacity', 0.9);
+    map.setPaintProperty('arrondissements-outline', 'line-width', [
+        'interpolate', ['linear'], ['zoom'], 10, 1, 12, 1.25, 14, 1.5, 16, 1.75,
+    ]);
+    map.setPaintProperty('arrondissements-outline', 'line-dasharray', ['literal', [1, 0]]);
+    if (map.getLayer('arrondissements-fill')) {
+        map.setPaintProperty('arrondissements-fill', 'fill-outline-color', MAP_OUTLINE.light);
+        map.setPaintProperty('arrondissements-fill', 'fill-opacity', 0.82);
+    }
+}
+
+function applyAccessibilityMapStyles() {
+    applyMapBorders();
+}
+
+const CHART_THEME = {
+    accent: '#38bdf8',
+    accentSoft: 'rgba(56, 189, 248, 0.12)',
+    grid: 'rgba(148, 163, 184, 0.1)',
+    text: '#94a3b8',
+    palette: ['#38bdf8', '#22d3ee', '#818cf8', '#34d399', '#fbbf24'],
+};
+
+function configureChartDefaults() {
+    if (typeof Chart === 'undefined') return;
+    Chart.defaults.font.family = "'DM Sans', system-ui, sans-serif";
+    Chart.defaults.color = CHART_THEME.text;
+}
+
+function chartScales(yTitle) {
+    const axis = {
+        ticks: { color: CHART_THEME.text, font: { size: 11 } },
+        grid: { color: CHART_THEME.grid, drawBorder: false },
+        border: { display: false },
+    };
+    const scales = { x: { ...axis }, y: { ...axis } };
+    if (yTitle) {
+        scales.y.title = { display: true, text: yTitle, color: CHART_THEME.text, font: { size: 11 } };
+    }
+    return scales;
+}
 
 let allData = null;
 let map = null;
@@ -8,6 +114,7 @@ let selectedIndicator = 'prix';
 let selectedArr = null;
 let timelinePlaying = false;
 let timelineInterval = null;
+let geoPointsVisible = false;
 
 const arrondissementCoords = {
     1: [48.8606, 2.3376], 2: [48.8698, 2.3412], 3: [48.8630, 2.3624],
@@ -21,25 +128,55 @@ const arrondissementCoords = {
 
 document.addEventListener('DOMContentLoaded', async () => {
     await loadPolygons();
-    loadTransportsData(); // Plus besoin d'async
+    loadTransportsData();
     initializeMap();
+    await loadFreshness();
     await loadData();
     initializeCharts();
     setupEventListeners();
+    updateMapLegend();
     await updateMap();
     updateGlobalStats();
 });
 
+async function loadFreshness() {
+    const el = document.getElementById('data-freshness');
+    if (!el) return;
+    try {
+        const response = await fetch(`${API_BASE_URL}/platform/freshness`);
+        if (!response.ok) return;
+        const f = await response.json();
+        const snap = f.snapshot || {};
+        const api = f.api || {};
+        const age = snap.age_human ? `il y a ${snap.age_human}` : 'snapshot Gold';
+        el.textContent = `Analyse à l'instant T — snapshot ${age} · requête ${api.query_latency_ms ?? '—'} ms · cache v${api.cache_version ?? 0}`;
+    } catch {
+        el.textContent = '';
+    }
+}
+
 async function loadData() {
     try {
-        const response = await fetch(`${API_BASE_URL}/arrondissements`);
+        const response = await fetch(`${API_BASE_URL}/arrondissements?annee=${selectedYear}`);
         const data = await response.json();
         allData = data.arrondissements;
+        updateFreshnessFromPayload(data.freshness);
         console.log('Données chargées:', allData);
+        updateLogementsSociauxChart();
+        updateAccessibiliteChart();
     } catch (error) {
         console.error('Erreur:', error);
         showError('Impossible de charger les données. Vérifiez que l\'API est démarrée.');
     }
+}
+
+function updateFreshnessFromPayload(freshness) {
+    const el = document.getElementById('data-freshness');
+    if (!el || !freshness) return;
+    const snap = freshness.snapshot || {};
+    const api = freshness.api || {};
+    const age = snap.age_human ? `il y a ${snap.age_human}` : 'snapshot Gold';
+    el.textContent = `Analyse à l'instant T — snapshot ${age} · requête ${api.query_latency_ms ?? '—'} ms`;
 }
 
 function initializeMap() {
@@ -57,18 +194,19 @@ function initializeMap() {
             container: 'map',
             style: {
                 version: 8,
+                glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
                 sources: {
-                    'osm': {
+                    'carto-dark': {
                         type: 'raster',
-                        tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                        tiles: ['https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'],
                         tileSize: 256,
-                        attribution: '© OpenStreetMap'
+                        attribution: '© CARTO © OpenStreetMap'
                     }
                 },
                 layers: [{
-                    id: 'osm',
+                    id: 'carto-dark',
                     type: 'raster',
-                    source: 'osm'
+                    source: 'carto-dark'
                 }]
             },
             center: [2.3522, 48.8566],
@@ -86,7 +224,10 @@ function initializeMap() {
 
     map.on('load', () => {
         console.log('✅ Carte chargée');
-        setTimeout(() => updateMap(), 100);
+        setTimeout(() => {
+            updateMap();
+            applyAccessibilityMapStyles();
+        }, 100);
     });
     
     map.on('error', (e) => {
@@ -571,6 +712,7 @@ async function updateMap() {
         if (selectedIndicator === 'revenus') defaultValue = 30000;
         if (selectedIndicator === 'vegetation') defaultValue = 1000;
         if (selectedIndicator === 'transports') defaultValue = 20;
+        if (selectedIndicator === 'delits') defaultValue = 50;
         
         let value = defaultValue;
         if (arrData) {
@@ -604,34 +746,9 @@ async function updateMap() {
         if (map.getLayer('arrondissements-fill')) {
             const colorExpression = getColorExpressionForIndicator(selectedIndicator);
             map.setPaintProperty('arrondissements-fill', 'fill-color', colorExpression);
-            map.setPaintProperty('arrondissements-fill', 'fill-outline-color', '#000000');
+            applyAccessibilityMapStyles();
         }
-        if (map.getLayer('arrondissements-outline-thick')) {
-            map.setPaintProperty('arrondissements-outline-thick', 'line-width', [
-                'interpolate',
-                ['linear'],
-                ['zoom'],
-                10, 8,
-                12, 10,
-                14, 12,
-                16, 15
-            ]);
-            map.setPaintProperty('arrondissements-outline-thick', 'line-color', '#000000');
-            map.setPaintProperty('arrondissements-outline-thick', 'line-opacity', 1);
-        }
-        if (map.getLayer('arrondissements-outline')) {
-            map.setPaintProperty('arrondissements-outline', 'line-width', [
-                'interpolate',
-                ['linear'],
-                ['zoom'],
-                10, 4,
-                12, 5,
-                14, 6,
-                16, 7
-            ]);
-            map.setPaintProperty('arrondissements-outline', 'line-color', '#000000');
-            map.setPaintProperty('arrondissements-outline', 'line-opacity', 1);
-        }
+        applyMapBorders();
         
         // Afficher les arbres si l'indicateur végétation est sélectionné
         if (selectedIndicator === 'vegetation') {
@@ -656,12 +773,8 @@ async function updateMap() {
             source: 'arrondissements',
             paint: {
                 'fill-color': getColorExpressionForIndicator(selectedIndicator),
-                'fill-opacity': [
-                    'case',
-                    ['has', 'value'], 0.7,
-                    0.5
-                ],
-                'fill-outline-color': '#000000'
+                'fill-opacity': 0.82,
+                'fill-outline-color': MAP_OUTLINE.light,
             }
         });
 
@@ -669,48 +782,30 @@ async function updateMap() {
             id: 'arrondissements-outline-thick',
             type: 'line',
             source: 'arrondissements',
-            layout: {
-                'line-join': 'round',
-                'line-cap': 'round'
-            },
+            layout: { 'line-join': 'round', 'line-cap': 'round' },
             paint: {
-                'line-color': '#000000',
-                'line-width': [
-                    'interpolate',
-                    ['linear'],
-                    ['zoom'],
-                    10, 8,
-                    12, 10,
-                    14, 12,
-                    16, 15
-                ],
-                'line-opacity': 1
+                'line-color': MAP_OUTLINE.light,
+                'line-width': ['interpolate', ['linear'], ['zoom'], 10, 2.5, 14, 3.5, 16, 4],
+                'line-opacity': 0.95,
             }
         }, 'arrondissements-fill');
-        
+
         map.addLayer({
             id: 'arrondissements-outline',
             type: 'line',
             source: 'arrondissements',
-            layout: {
-                'line-join': 'round',
-                'line-cap': 'round'
-            },
+            layout: { 'line-join': 'round', 'line-cap': 'round' },
             paint: {
-                'line-color': '#000000',
-                'line-width': [
-                    'interpolate',
-                    ['linear'],
-                    ['zoom'],
-                    10, 4,
-                    12, 5,
-                    14, 6,
-                    16, 7
-                ],
-                'line-opacity': 1
+                'line-color': MAP_OUTLINE.dark,
+                'line-width': ['interpolate', ['linear'], ['zoom'], 10, 1, 14, 1.5, 16, 1.75],
+                'line-opacity': 0.9,
             }
         }, 'arrondissements-outline-thick');
+
+        ensureArrondissementLabels();
     }
+
+    ensureArrondissementLabels();
 
     // Garder la carte droite (pas d'animation si déjà droite)
     if (map.getPitch() !== 0) {
@@ -1021,120 +1116,118 @@ function removeTransportMarkers() {
     transportMarkers = [];
 }
 
-// Obtenir l'expression de couleur pour MapLibre selon l'indicateur
+const INDICATOR_ORDER = [
+    'prix', 'logements', 'loyers', 'accessibilite', 'pollution',
+    'delits', 'revenus', 'vegetation', 'transports',
+];
+
+function selectIndicator(indicator) {
+    selectedIndicator = indicator;
+    document.querySelectorAll('.indicator-item').forEach(i => {
+        const active = i.dataset.indicator === indicator;
+        i.classList.toggle('active', active);
+        i.setAttribute('aria-pressed', String(active));
+    });
+    updateMapLegend();
+    updateMap();
+    if (selectedIndicator === 'vegetation') {
+        setTimeout(() => updateTreeMarkers(), 200);
+    } else {
+        removeTreeMarkers();
+    }
+    if (selectedIndicator === 'transports') {
+        updateTransportMarkers();
+    } else {
+        removeTransportMarkers();
+    }
+}
+
+function getOutlineDashExpression(indicator) {
+    return ['literal', [1, 0]];
+}
+
 function getColorExpressionForIndicator(indicator) {
     switch (indicator) {
         case 'prix':
-            return [
-                'case',
-                ['<', ['get', 'value'], 8000], '#6b7280',
-                ['<', ['get', 'value'], 10000], '#10b981',
-                ['<', ['get', 'value'], 12000], '#f59e0b',
-                ['<', ['get', 'value'], 15000], '#ef4444',
-                '#dc2626'
-            ];
+            return seqLtExpr(8000, 10000, 12000, 15000);
         case 'logements':
-            return [
-                'case',
-                ['>=', ['get', 'value'], 25], '#10b981',   // Vert (beaucoup)
-                ['>=', ['get', 'value'], 15], '#3b82f6',    // Bleu (moyen)
-                ['>=', ['get', 'value'], 8], '#f59e0b',     // Orange (peu)
-                '#ef4444'  // Rouge (très peu)
-            ];
+            return seqGteExpr(10, 15, 20, 25);
+        case 'loyers':
+            return seqGteExpr(22, 28, 32, 36);
+        case 'accessibilite':
+            return seqGteExpr(200, 300, 350, 400);
+        case 'revenus':
+            return seqGteExpr(25000, 30000, 35000, 40000);
+        case 'transports':
+            return seqGteExpr(5, 15, 30, 50);
+        case 'delits':
+            return seqGteExpr(40, 80, 120, 200);
         case 'pollution':
             return [
                 'case',
-                ['<=', ['get', 'value'], 3], '#10b981',    // Vert (bon)
-                ['<=', ['get', 'value'], 5], '#f59e0b',     // Orange (moyen)
-                ['<=', ['get', 'value'], 7], '#ef4444',     // Rouge (mauvais)
-                '#dc2626'  // Rouge foncé (très mauvais)
-            ];
-        case 'revenus':
-            return [
-                'case',
-                ['>=', ['get', 'value'], 40000], '#10b981', // Vert (élevé)
-                ['>=', ['get', 'value'], 30000], '#3b82f6', // Bleu (moyen-élevé)
-                ['>=', ['get', 'value'], 25000], '#f59e0b', // Orange (moyen)
-                '#ef4444'  // Rouge (bas)
+                ['<=', ['get', 'value'], 3], AIR_GOOD_TO_BAD[0],
+                ['<=', ['get', 'value'], 5], AIR_GOOD_TO_BAD[2],
+                ['<=', ['get', 'value'], 7], AIR_GOOD_TO_BAD[3],
+                AIR_GOOD_TO_BAD[4],
             ];
         case 'vegetation':
             return [
                 'case',
-                ['>=', ['get', 'value'], 3000], '#10b981',   // Vert foncé (beaucoup d'arbres)
-                ['>=', ['get', 'value'], 2000], '#22c55e',   // Vert (moyen-élevé)
-                ['>=', ['get', 'value'], 1000], '#84cc16',   // Vert clair (moyen)
-                ['>=', ['get', 'value'], 500], '#eab308',    // Jaune (peu)
-                '#f59e0b'  // Orange (très peu)
-            ];
-        case 'transports':
-            return [
-                'case',
-                ['>=', ['get', 'value'], 50], '#3b82f6',    // Bleu (beaucoup de transports)
-                ['>=', ['get', 'value'], 30], '#6366f1',     // Indigo (moyen-élevé)
-                ['>=', ['get', 'value'], 15], '#8b5cf6',     // Violet (moyen)
-                ['>=', ['get', 'value'], 5], '#a855f7',     // Violet clair (peu)
-                '#c084fc'  // Violet très clair (très peu)
+                ['<', ['get', 'value'], 200], VEG_NONE_TO_DENSE[0],
+                ['<', ['get', 'value'], 500], VEG_NONE_TO_DENSE[1],
+                ['<', ['get', 'value'], 1000], VEG_NONE_TO_DENSE[2],
+                ['<', ['get', 'value'], 2000], VEG_NONE_TO_DENSE[3],
+                VEG_NONE_TO_DENSE[4],
             ];
         default:
-            return [
-                'case',
-                ['<', ['get', 'value'], 8000], '#6b7280',
-                ['<', ['get', 'value'], 10000], '#10b981',
-                ['<', ['get', 'value'], 12000], '#f59e0b',
-                ['<', ['get', 'value'], 15000], '#ef4444',
-                '#dc2626'
-            ];
+            return seqLtExpr(8000, 10000, 12000, 15000);
     }
+}
+
+function baseColorAt(value, t1, t2, t3, t4, gte = false) {
+    if (gte) {
+        if (value >= t4) return MAP_BASE[4];
+        if (value >= t3) return MAP_BASE[3];
+        if (value >= t2) return MAP_BASE[2];
+        if (value >= t1) return MAP_BASE[1];
+        return MAP_BASE[0];
+    }
+    if (value < t1) return MAP_BASE[0];
+    if (value < t2) return MAP_BASE[1];
+    if (value < t3) return MAP_BASE[2];
+    if (value < t4) return MAP_BASE[3];
+    return MAP_BASE[4];
 }
 
 function getColorForIndicator(indicator, value) {
     switch (indicator) {
         case 'prix':
-            // Prix/m² : 8000-15000€
-            if (value >= 12000) return '#ef4444'; // Rouge (élevé)
-            if (value >= 10000) return '#f59e0b'; // Orange (moyen)
-            if (value >= 8000) return '#10b981';  // Vert (bas)
-            return '#6b7280'; // Gris (très bas)
-            
+            return baseColorAt(value, 8000, 10000, 12000, 15000, false);
         case 'logements':
-            // Logements sociaux : 0-30% (plus = mieux pour mixité sociale)
-            if (value >= 25) return '#10b981';   // Vert (beaucoup de logements sociaux)
-            if (value >= 15) return '#3b82f6';    // Bleu (moyen)
-            if (value >= 8) return '#f59e0b';    // Orange (peu)
-            return '#ef4444'; // Rouge (très peu)
-            
-        case 'pollution':
-            // Qualité air : 1-10 (plus bas = mieux)
-            if (value <= 3) return '#10b981';     // Vert (bon)
-            if (value <= 5) return '#f59e0b';     // Orange (moyen)
-            if (value <= 7) return '#ef4444';     // Rouge (mauvais)
-            return '#dc2626'; // Rouge foncé (très mauvais)
-            
+            return baseColorAt(value, 10, 15, 20, 25, true);
+        case 'loyers':
+            return baseColorAt(value, 22, 28, 32, 36, true);
+        case 'accessibilite':
+            return baseColorAt(value, 200, 300, 350, 400, true);
         case 'revenus':
-            // Revenus : 20000-50000€
-            if (value >= 40000) return '#10b981'; // Vert (élevé)
-            if (value >= 30000) return '#3b82f6'; // Bleu (moyen-élevé)
-            if (value >= 25000) return '#f59e0b'; // Orange (moyen)
-            return '#ef4444'; // Rouge (bas)
-            
-        case 'vegetation':
-            // Végétation : nombre d'arbres (0-5000)
-            if (value >= 3000) return '#10b981';   // Vert foncé (beaucoup)
-            if (value >= 2000) return '#22c55e';     // Vert (moyen-élevé)
-            if (value >= 1000) return '#84cc16';    // Vert clair (moyen)
-            if (value >= 500) return '#eab308';     // Jaune (peu)
-            return '#f59e0b'; // Orange (très peu)
-            
+            return baseColorAt(value, 25000, 30000, 35000, 40000, true);
         case 'transports':
-            // Transports : total stations/arrêts (0-70+)
-            if (value >= 50) return '#3b82f6';     // Bleu (beaucoup)
-            if (value >= 30) return '#6366f1';      // Indigo (moyen-élevé)
-            if (value >= 15) return '#8b5cf6';      // Violet (moyen)
-            if (value >= 5) return '#a855f7';       // Violet clair (peu)
-            return '#c084fc'; // Violet très clair (très peu)
-            
+            return baseColorAt(value, 5, 15, 30, 50, true);
+        case 'delits':
+            return baseColorAt(value, 40, 80, 120, 200, true);
+        case 'pollution':
+            if (value <= 3) return AIR_GOOD_TO_BAD[0];
+            if (value <= 5) return AIR_GOOD_TO_BAD[2];
+            if (value <= 7) return AIR_GOOD_TO_BAD[3];
+            return AIR_GOOD_TO_BAD[4];
+        case 'vegetation':
+            if (value < 200) return VEG_NONE_TO_DENSE[0];
+            if (value < 500) return VEG_NONE_TO_DENSE[1];
+            if (value < 1000) return VEG_NONE_TO_DENSE[2];
+            if (value < 2000) return VEG_NONE_TO_DENSE[3];
+            return VEG_NONE_TO_DENSE[4];
         default:
-            return '#6b7280'; // Gris par défaut
+            return MAP_BASE[2];
     }
 }
 
@@ -1146,8 +1239,15 @@ function getIndicatorValue(arr, indicator, year) {
             return yearData ? yearData.prix_m2_median : (arr.statistiques?.prix_m2_actuel || 0);
         case 'logements':
             return arr.logements_sociaux_pourcentage || 0;
+        case 'loyers':
+            return arr.loyers?.loyer_m2_median || arr.accessibilite_logement?.loyer_m2_median || 0;
+        case 'accessibilite':
+            return arr.accessibilite_logement?.mois_revenu_pour_50m2_achat
+                || arr.accessibilite_logement?.mois_revenu_pour_50m2_location || 0;
         case 'pollution':
             return arr.pollution_qualite_air?.indice_atmo || 0;
+        case 'delits':
+            return arr.delits_enregistres?.delits_par_1000_habitants || 0;
         case 'revenus':
             return arr.revenus_moyens?.revenu_median_menage || 0;
         case 'vegetation':
@@ -1165,21 +1265,40 @@ function showTooltip(e, arrNum) {
     if (!arr) return;
 
     const tooltip = document.getElementById('tooltip');
+    const wrapper = document.querySelector('.map-container-wrapper');
+    if (!tooltip || !wrapper) return;
+
     const value = getIndicatorValue(arr, selectedIndicator, selectedYear);
     const valueLabel = getIndicatorLabel(selectedIndicator, value);
+    const price = arr.statistiques?.prix_m2_actuel;
+
+    const lines = [
+        `<div><span class="tooltip-kpi">${getIndicatorName(selectedIndicator)}</span> ${valueLabel}</div>`,
+    ];
+    if (selectedIndicator !== 'prix' && price != null) {
+        lines.push(`<div><span class="tooltip-kpi">Prix/m²</span> ${price.toLocaleString('fr-FR')} €</div>`);
+    }
+    if (selectedIndicator !== 'logements' && arr.logements_sociaux_pourcentage != null) {
+        lines.push(`<div><span class="tooltip-kpi">Log. sociaux</span> ${arr.logements_sociaux_pourcentage}%</div>`);
+    }
 
     tooltip.innerHTML = `
-        <div class="tooltip-title">${arr.arrondissement}e Arrondissement</div>
-        <div class="tooltip-content">
-            <div><strong>${getIndicatorName(selectedIndicator)}:</strong> ${valueLabel}</div>
-            <div><strong>Prix/m²:</strong> ${arr.statistiques?.prix_m2_actuel?.toLocaleString('fr-FR')}€</div>
-            <div><strong>Logements sociaux:</strong> ${arr.logements_sociaux_pourcentage}%</div>
-        </div>
+        <div class="tooltip-title">${arr.arrondissement}<sup>e</sup> arrondissement</div>
+        <div class="tooltip-content">${lines.join('')}</div>
     `;
 
-    tooltip.style.left = e.point.x + 10 + 'px';
-    tooltip.style.top = e.point.y + 10 + 'px';
+    const pad = 12;
     tooltip.classList.remove('hidden');
+    const tw = tooltip.offsetWidth;
+    const th = tooltip.offsetHeight;
+    let left = e.point.x + pad;
+    let top = e.point.y + pad;
+    if (left + tw > wrapper.clientWidth - pad) left = e.point.x - tw - pad;
+    if (top + th > wrapper.clientHeight - pad) top = e.point.y - th - pad;
+    left = Math.max(pad, left);
+    top = Math.max(pad, top);
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
 }
 
 function hideTooltip() {
@@ -1194,6 +1313,9 @@ function selectArrondissement(arrNum) {
 
     updateSelectedInfo(arr);
     updateCharts();
+    if (geoPointsVisible) {
+        loadGeoPointsLayer(arrNum);
+    }
     
     // Centrer la carte sur l'arrondissement
     const coords = arrondissementCoords[arrNum];
@@ -1204,6 +1326,47 @@ function selectArrondissement(arrNum) {
             duration: 1500
         });
     }
+}
+
+function stressBadgeClass(mois) {
+    if (mois == null) return 'stress-mid';
+    if (mois < 200) return 'stress-low';
+    if (mois < 350) return 'stress-mid';
+    return 'stress-high';
+}
+
+function formatAccessibiliteBlock(arr) {
+    const a = arr.accessibilite_logement || {};
+    const surface = a.surface_moyenne_m2 || arr.typologie?.surface_moyenne_m2 || arr.statistiques?.surface_moyenne_m2;
+    if (!a.mois_revenu_pour_50m2_achat && !a.mois_revenu_pour_50m2_location) return '';
+    return `
+        <div class="info-highlight" role="region" aria-label="Accessibilité logement">
+            <div class="info-title" style="font-size:0.85rem;margin-bottom:0.5rem;">Accessibilité (50 m²)</div>
+            ${a.mois_revenu_pour_50m2_achat != null ? `
+            <div class="info-item">
+                <span class="info-label">Achat — mois de revenu</span>
+                <span class="info-value stress-badge ${stressBadgeClass(a.mois_revenu_pour_50m2_achat)}">${a.mois_revenu_pour_50m2_achat} mois</span>
+            </div>` : ''}
+            ${a.mois_revenu_pour_50m2_location != null ? `
+            <div class="info-item">
+                <span class="info-label">Location — mois de revenu</span>
+                <span class="info-value stress-badge ${stressBadgeClass(a.mois_revenu_pour_50m2_location)}">${a.mois_revenu_pour_50m2_location} mois</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Loyer estimé / m²</span>
+                <span class="info-value">${a.loyer_m2_median?.toLocaleString('fr-FR') || '—'} €/mois</span>
+            </div>
+            ${a.part_revenu_loyer_50m2_pct != null ? `
+            <div class="info-item">
+                <span class="info-label">Part revenu (loyer 50 m²)</span>
+                <span class="info-value">${a.part_revenu_loyer_50m2_pct}%</span>
+            </div>` : ''}` : ''}
+            ${surface ? `
+            <div class="info-item">
+                <span class="info-label">Surface moyenne (ventes)</span>
+                <span class="info-value">${Number(surface).toFixed(0)} m²</span>
+            </div>` : ''}
+        </div>`;
 }
 
 function updateSelectedInfo(arr) {
@@ -1228,9 +1391,18 @@ function updateSelectedInfo(arr) {
                 <span class="info-value">${arr.pollution_qualite_air?.qualite || 'N/A'}</span>
             </div>
             <div class="info-item">
+                <span class="info-label">Délits / 1000 hab.</span>
+                <span class="info-value">${arr.delits_enregistres?.delits_par_1000_habitants != null ? arr.delits_enregistres.delits_par_1000_habitants.toFixed(1) : 'N/A'}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Total délits (${arr.delits_enregistres?.annee || '—'})</span>
+                <span class="info-value">${arr.delits_enregistres?.total_delits != null ? arr.delits_enregistres.total_delits.toLocaleString('fr-FR') : 'N/A'}</span>
+            </div>
+            <div class="info-item">
                 <span class="info-label">Revenu médian</span>
                 <span class="info-value">${arr.revenus_moyens?.revenu_median_menage?.toLocaleString('fr-FR') || 'N/A'}€</span>
             </div>
+            ${formatAccessibiliteBlock(arr)}
             ${getTransportsInfoHTML(arr)}
         </div>
     `;
@@ -1311,13 +1483,17 @@ function updateGlobalStats() {
         
         if (variations.length > 0) {
             const avgVariation = variations.reduce((a, b) => a + b, 0) / variations.length;
-            document.getElementById('avg-variation').textContent = avgVariation.toFixed(2) + '%';
+            const sign = avgVariation > 0 ? '+' : '';
+            document.getElementById('avg-variation').textContent = `${sign}${avgVariation.toFixed(1)}%`;
+        } else {
+            document.getElementById('avg-variation').textContent = '—';
         }
     }
 }
 
 // Initialiser les graphiques
 function initializeCharts() {
+    configureChartDefaults();
     updateTimelineChart();
     updateComparisonChart();
     updateTypologyChart();
@@ -1348,12 +1524,14 @@ function updateTimelineChart() {
             datasets: [{
                 label: 'Prix/m² médian (€)',
                 data: data,
-                borderColor: '#6366f1',
-                backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                tension: 0.4,
+                borderColor: CHART_THEME.accent,
+                backgroundColor: CHART_THEME.accentSoft,
+                tension: 0.35,
                 fill: true,
-                pointRadius: 6,
-                pointHoverRadius: 8
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                pointBackgroundColor: CHART_THEME.accent,
+                borderWidth: 2
             }]
         },
         options: {
@@ -1364,25 +1542,7 @@ function updateTimelineChart() {
                     display: false
                 }
             },
-            scales: {
-                y: {
-                    beginAtZero: false,
-                    ticks: {
-                        color: '#cbd5e1'
-                    },
-                    grid: {
-                        color: '#334155'
-                    }
-                },
-                x: {
-                    ticks: {
-                        color: '#cbd5e1'
-                    },
-                    grid: {
-                        color: '#334155'
-                    }
-                }
-            }
+            scales: chartScales('€ / m²')
         }
     });
 }
@@ -1410,42 +1570,20 @@ function updateComparisonChart() {
             datasets: [{
                 label: 'Prix/m² (€)',
                 data: evolution,
-                backgroundColor: evolution.map(v => {
-                    if (v < 10000) return '#10b981';
-                    if (v < 12000) return '#f59e0b';
-                    return '#ef4444';
+                backgroundColor: evolution.map((v) => {
+                    if (v < 10000) return MAP_BASE[1];
+                    if (v < 12000) return MAP_BASE[2];
+                    return MAP_BASE[3];
                 }),
-                borderColor: '#ffffff',
-                borderWidth: 1
+                borderColor: 'transparent',
+                borderWidth: 0
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: false,
-                    ticks: {
-                        color: '#cbd5e1'
-                    },
-                    grid: {
-                        color: '#334155'
-                    }
-                },
-                x: {
-                    ticks: {
-                        color: '#cbd5e1'
-                    },
-                    grid: {
-                        color: '#334155'
-                    }
-                }
-            }
+            plugins: { legend: { display: false } },
+            scales: chartScales('€ / m²')
         }
     });
 }
@@ -1498,13 +1636,7 @@ function updateTypologyChart() {
             datasets: [{
                 label: 'Répartition (%)',
                 data: data,
-                backgroundColor: [
-                    '#6366f1',  // Studio
-                    '#8b5cf6',  // T2
-                    '#ec4899',  // T3
-                    '#f59e0b',  // T4
-                    '#10b981'   // T5+
-                ]
+                backgroundColor: CHART_THEME.palette,
             }]
         },
         options: {
@@ -1514,11 +1646,9 @@ function updateTypologyChart() {
                 legend: {
                     position: 'bottom',
                     labels: {
-                        color: '#cbd5e1',
-                        padding: 15,
-                        font: {
-                            size: 12
-                        }
+                        color: CHART_THEME.text,
+                        padding: 12,
+                        font: { size: 11 }
                     }
                 },
                 tooltip: {
@@ -1549,7 +1679,7 @@ function updateTypologyChart() {
     } catch (error) {
         console.error('Erreur lors de la création du graphique typologie:', error);
         // Afficher un message d'erreur dans le canvas
-        ctx.fillStyle = '#cbd5e1';
+        ctx.fillStyle = CHART_THEME.text;
         ctx.font = '14px Arial';
         ctx.textAlign = 'center';
         ctx.fillText('Erreur: Impossible d\'afficher le graphique', ctx.canvas.width / 2, ctx.canvas.height / 2);
@@ -1634,11 +1764,9 @@ function updateTransportsChart() {
                     legend: {
                         position: 'bottom',
                         labels: {
-                            color: '#cbd5e1',
-                            padding: 15,
-                            font: {
-                                size: 12
-                            }
+                            color: CHART_THEME.text,
+                            padding: 12,
+                            font: { size: 11 }
                         }
                     },
                     tooltip: {
@@ -1669,24 +1797,8 @@ function updateTransportsChart() {
                     }
                 },
                 scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            color: '#cbd5e1',
-                            stepSize: 1
-                        },
-                        grid: {
-                            color: '#334155'
-                        }
-                    },
-                    x: {
-                        ticks: {
-                            color: '#cbd5e1'
-                        },
-                        grid: {
-                            color: '#334155'
-                        }
-                    }
+                    y: { beginAtZero: true, ...chartScales().y, ticks: { ...chartScales().y.ticks, stepSize: 1 } },
+                    x: chartScales().x,
                 }
             }
         });
@@ -1700,38 +1812,179 @@ function updateCharts() {
     updateComparisonChart();
     updateTypologyChart();
     updateTransportsChart();
+    updateLogementsSociauxChart();
+    updateAccessibiliteChart();
+}
+
+async function loadGeoPointsLayer(arrondissement = null) {
+    if (!map || !map.isStyleLoaded()) return;
+    const params = new URLSearchParams({ limit: '400' });
+    if (arrondissement) params.set('arrondissement', String(arrondissement));
+    const bounds = map.getBounds();
+    params.set('min_lon', String(bounds.getWest()));
+    params.set('min_lat', String(bounds.getSouth()));
+    params.set('max_lon', String(bounds.getEast()));
+    params.set('max_lat', String(bounds.getNorth()));
+    try {
+        const response = await fetch(`${API_BASE_URL}/mongo/geo-points?${params}`);
+        if (!response.ok) return;
+        const data = await response.json();
+        const features = (data.points || []).map(p => ({
+            type: 'Feature',
+            geometry: p.location,
+            properties: {
+                type: p.type,
+                arrondissement: p.arrondissement,
+                prix: p.properties?.valeur_fonciere,
+            },
+        }));
+        const fc = { type: 'FeatureCollection', features };
+        if (map.getSource('geo-points')) {
+            map.getSource('geo-points').setData(fc);
+        } else {
+            map.addSource('geo-points', { type: 'geojson', data: fc });
+            map.addLayer({
+                id: 'geo-points',
+                type: 'circle',
+                source: 'geo-points',
+                paint: {
+                    'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 3, 14, 6],
+                    'circle-color': [
+                        'match', ['get', 'type'],
+                        'dvf_transaction', '#f59e0b',
+                        'geocoded_address', '#38bdf8',
+                        '#94a3b8',
+                    ],
+                    'circle-opacity': 0.85,
+                    'circle-stroke-width': 1,
+                    'circle-stroke-color': '#ffffff',
+                },
+            });
+        }
+        map.setLayoutProperty('geo-points', 'visibility', geoPointsVisible ? 'visible' : 'none');
+    } catch (e) {
+        console.warn('Points géo indisponibles (Mongo/sync requis):', e);
+    }
+}
+
+function toggleGeoPointsLayer() {
+    geoPointsVisible = !geoPointsVisible;
+    const btn = document.getElementById('toggle-geo-points');
+    if (btn) {
+        btn.setAttribute('aria-pressed', String(geoPointsVisible));
+        btn.classList.toggle('active', geoPointsVisible);
+    }
+    if (geoPointsVisible) {
+        loadGeoPointsLayer(selectedArr);
+    } else if (map?.getLayer('geo-points')) {
+        map.setLayoutProperty('geo-points', 'visibility', 'none');
+    }
+}
+
+function updateLogementsSociauxChart() {
+    const canvas = document.getElementById('logements-sociaux-chart');
+    if (!canvas || !allData) return;
+    const ctx = canvas.getContext('2d');
+    if (charts.logementsSociaux) charts.logementsSociaux.destroy();
+
+    const arr = selectedArr
+        ? allData.find(a => a.arrondissement === selectedArr)
+        : allData[0];
+    const series = arr?.logements_sociaux_evolution || [];
+    charts.logementsSociaux = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: series.map(s => s.annee),
+            datasets: [{
+                label: `${arr?.arrondissement || ''}e — % logements sociaux`,
+                data: series.map(s => s.logements_sociaux_pct),
+                borderColor: CHART_THEME.accent,
+                backgroundColor: CHART_THEME.accentSoft,
+                fill: true,
+                tension: 0.3,
+            }],
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: CHART_THEME.text, font: { size: 11 } } } },
+            scales: chartScales('%'),
+        },
+    });
+}
+
+function updateAccessibiliteChart() {
+    const canvas = document.getElementById('accessibilite-chart');
+    if (!canvas || !allData) return;
+    const ctx = canvas.getContext('2d');
+    if (charts.accessibilite) charts.accessibilite.destroy();
+
+    const labels = allData.map(a => `${a.arrondissement}e`);
+    const achat = allData.map(a => a.accessibilite_logement?.mois_revenu_pour_50m2_achat || 0);
+    const location = allData.map(a => a.accessibilite_logement?.mois_revenu_pour_50m2_location || 0);
+
+    charts.accessibilite = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [
+                { label: 'Achat (mois revenu / 50 m²)', data: achat, backgroundColor: CHART_THEME.accent },
+                { label: 'Location estimée', data: location, backgroundColor: '#34d399' },
+            ],
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: CHART_THEME.text, font: { size: 11 } } } },
+            scales: chartScales('Mois de revenu'),
+        },
+    });
 }
 
 // Configuration des événements
 function setupEventListeners() {
     // Sélecteur d'année
-    document.getElementById('year-selector').addEventListener('change', (e) => {
+    document.getElementById('year-selector').addEventListener('change', async (e) => {
         selectedYear = parseInt(e.target.value);
+        await loadData();
         updateMap();
         updateGlobalStats();
         updateCharts();
     });
 
-    // Indicateurs
+    // Indicateurs (souris + clavier)
     document.querySelectorAll('.indicator-item').forEach(item => {
-        item.addEventListener('click', () => {
-            document.querySelectorAll('.indicator-item').forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
-            selectedIndicator = item.dataset.indicator;
-            updateMap();
-            // Forcer la mise à jour des arbres si végétation
-            if (selectedIndicator === 'vegetation') {
-                setTimeout(() => updateTreeMarkers(), 200);
-            } else {
-                removeTreeMarkers();
+        const activate = () => selectIndicator(item.dataset.indicator);
+        item.addEventListener('click', activate);
+        item.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                activate();
             }
         });
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.target.closest('input, select, textarea, button')) return;
+        const idx = INDICATOR_ORDER.indexOf(selectedIndicator);
+        if (idx < 0) return;
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+            e.preventDefault();
+            selectIndicator(INDICATOR_ORDER[(idx + 1) % INDICATOR_ORDER.length]);
+        } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+            selectIndicator(INDICATOR_ORDER[(idx - 1 + INDICATOR_ORDER.length) % INDICATOR_ORDER.length]);
+        }
     });
 
     // Mode comparaison
     document.getElementById('compare-mode-btn').addEventListener('click', () => {
         const panel = document.getElementById('compare-panel');
-        panel.classList.toggle('hidden');
+        const btn = document.getElementById('compare-mode-btn');
+        const open = panel.classList.toggle('hidden') === false;
+        btn.setAttribute('aria-expanded', String(open));
+    });
+
+    document.getElementById('map-guide-close')?.addEventListener('click', () => {
+        document.getElementById('map-guide')?.classList.add('hidden');
     });
 
     // Comparaison
@@ -1740,7 +1993,7 @@ function setupEventListeners() {
         const arr2 = document.getElementById('compare-arr2').value;
         
         if (!arr1 || !arr2) {
-            alert('Veuillez sélectionner deux arrondissements');
+            showError('Sélectionnez deux arrondissements à comparer.');
             return;
         }
 
@@ -1767,6 +2020,10 @@ function setupEventListeners() {
         console.warn('Bouton timeline non trouvé');
     }
 
+    document.getElementById('toggle-geo-points')?.addEventListener('click', toggleGeoPointsLayer);
+
+    selectIndicator('prix');
+
     // Remplir les selects
     if (allData) {
         const compare1 = document.getElementById('compare-arr1');
@@ -1786,19 +2043,19 @@ function displayComparison(data) {
     
     resultsDiv.innerHTML = `
         <div class="compare-result-card">
-            <h4>${data.arrondissement_1.nom} Arrondissement</h4>
-            <div class="stat-value">${data.arrondissement_1.prix_m2_actuel?.toLocaleString('fr-FR')}€/m²</div>
-            <div>Logements sociaux: ${data.arrondissement_1.logements_sociaux_pourcentage}%</div>
+            <h4>${data.arrondissement_1.nom}</h4>
+            <div class="stat-value">${data.arrondissement_1.prix_m2_actuel?.toLocaleString('fr-FR')} €/m²</div>
+            <div>Logements sociaux · ${data.arrondissement_1.logements_sociaux_pourcentage}%</div>
         </div>
         <div class="compare-result-card">
-            <h4>${data.arrondissement_2.nom} Arrondissement</h4>
-            <div class="stat-value">${data.arrondissement_2.prix_m2_actuel?.toLocaleString('fr-FR')}€/m²</div>
-            <div>Logements sociaux: ${data.arrondissement_2.logements_sociaux_pourcentage}%</div>
+            <h4>${data.arrondissement_2.nom}</h4>
+            <div class="stat-value">${data.arrondissement_2.prix_m2_actuel?.toLocaleString('fr-FR')} €/m²</div>
+            <div>Logements sociaux · ${data.arrondissement_2.logements_sociaux_pourcentage}%</div>
         </div>
         <div class="compare-result-card">
-            <h4>Différences</h4>
-            <div>Prix: ${data.differences.prix_m2_diff_pourcentage?.toFixed(2)}%</div>
-            <div>Logements sociaux: ${data.differences.logements_sociaux_diff?.toFixed(2)}%</div>
+            <h4>Écart</h4>
+            <div class="stat-value">${data.differences.prix_m2_diff_pourcentage?.toFixed(1)}%</div>
+            <div>Prix · Log. soc. ${data.differences.logements_sociaux_diff?.toFixed(1)} pts</div>
         </div>
     `;
 }
@@ -1814,7 +2071,7 @@ function playTimeline() {
 
     const timelineBtn = document.getElementById('play-timeline');
     if (timelineBtn) {
-        timelineBtn.innerHTML = '<span>⏸</span> Timeline';
+        timelineBtn.textContent = 'Pause';
         timelineBtn.classList.add('playing');
     }
 
@@ -1846,9 +2103,53 @@ function pauseTimeline() {
     
     const timelineBtn = document.getElementById('play-timeline');
     if (timelineBtn) {
-        timelineBtn.innerHTML = '<span>▶</span> Timeline';
+        timelineBtn.textContent = 'Timeline';
         timelineBtn.classList.remove('playing');
     }
+}
+
+// Légende carte selon l'indicateur
+function updateMapLegend() {
+    const legend = document.querySelector('.map-legend');
+    if (!legend) return;
+
+    const configs = {
+        prix: { title: 'Prix/m² (€)', labels: ['8000', '15000'] },
+        logements: { title: 'Logements sociaux (%)', labels: ['10', '28'] },
+        loyers: { title: 'Loyer estimé €/m²/mois', labels: ['22', '38'] },
+        accessibilite: { title: 'Mois revenu pour 50 m²', labels: ['< 200', '> 400'] },
+        pollution: { title: 'Qualité air', labels: ['Bon', 'Mauvais'] },
+        delits: { title: 'Délinquance', labels: ['Faible', 'Élevée'] },
+        revenus: { title: 'Revenu médian (€)', labels: ['25k', '40k'] },
+        vegetation: { title: 'Végétation', labels: ['Peu / aucun', 'Dense'] },
+        transports: { title: 'Points de transport', labels: ['5', '50'] }
+    };
+    const cfg = configs[selectedIndicator] || configs.prix;
+    const baseGrad = 'linear-gradient(to right, #0c2d48, #0e5a7a, #0e94b8, #38d9f5, #a8ecff)';
+    const gradients = {
+        prix: baseGrad,
+        logements: baseGrad,
+        loyers: baseGrad,
+        accessibilite: baseGrad,
+        delits: baseGrad,
+        revenus: baseGrad,
+        transports: baseGrad,
+        pollution: 'linear-gradient(to right, #34d399, #a3e635, #fbbf24, #f97316, #ef4444)',
+        vegetation: 'linear-gradient(to right, #64748b, #94a3b8, #86efac, #22c55e, #14532d)',
+    };
+    legend.innerHTML = `
+        <h4>${cfg.title}</h4>
+        <div class="legend-gradient" aria-hidden="true" style="background:${gradients[selectedIndicator] || gradients.prix}"></div>
+        <div class="legend-patterns" aria-hidden="true">
+            <span class="legend-pattern legend-pattern-low" title="Valeurs basses"></span>
+            <span class="legend-pattern legend-pattern-high" title="Valeurs hautes"></span>
+        </div>
+        <div class="legend-labels">
+            <span>${cfg.labels[0]}</span>
+            <span>${cfg.labels[1]}</span>
+        </div>
+        <p class="legend-a11y-hint">Couleurs + traits de contour (navigation clavier : flèches)</p>
+    `;
 }
 
 // Helpers
@@ -1856,7 +2157,10 @@ function getIndicatorName(indicator) {
     const names = {
         'prix': 'Prix/m²',
         'logements': 'Logements sociaux',
+        'loyers': 'Loyer estimé/m²',
+        'accessibilite': 'Accessibilité (mois revenu)',
         'pollution': 'Qualité air',
+        'delits': 'Délits',
         'revenus': 'Revenus',
         'vegetation': 'Végétation',
         'transports': 'Transports'
@@ -1870,8 +2174,14 @@ function getIndicatorLabel(indicator, value) {
             return value.toLocaleString('fr-FR') + '€';
         case 'logements':
             return value.toFixed(1) + '%';
+        case 'loyers':
+            return value.toFixed(1) + ' €/m²/mois';
+        case 'accessibilite':
+            return value.toFixed(0) + ' mois de revenu';
         case 'pollution':
             return value.toFixed(1);
+        case 'delits':
+            return value.toFixed(1) + ' / 1000 hab.';
         case 'revenus':
             return value.toLocaleString('fr-FR') + '€';
         case 'vegetation':
@@ -1884,5 +2194,10 @@ function getIndicatorLabel(indicator, value) {
 }
 
 function showError(message) {
-    alert(message);
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.remove('hidden');
+    clearTimeout(showError._timer);
+    showError._timer = setTimeout(() => toast.classList.add('hidden'), 5000);
 }

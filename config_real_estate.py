@@ -1,15 +1,28 @@
 """
 Configuration pour les sources de données immobilières.
+Clé INSEE optionnelle : variable d'environnement INSEE_API_KEY (fichier .env).
 """
+
+# geo-dvf : prix au m² par arrondissement (département 75)
+GEO_DVF_URL_TEMPLATE = "https://files.data.gouv.fr/geo-dvf/latest/csv/{year}/departements/75.csv.gz"
+
+# Délinquance communale (parquet data.gouv — Ministère de l'Intérieur)
+DELINQUANCE_PARQUET_URL = (
+    "https://static.data.gouv.fr/resources/"
+    "bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-"
+    "enregistree-par-la-police-et-la-gendarmerie-nationales/"
+    "20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
+)
 
 # Sources de données immobilières pour Paris
 REAL_ESTATE_APIS = [
     {
         "name": "dvf_data",
-        "url": "https://www.data.gouv.fr/api/1/datasets/demandes-de-valeurs-foncieres/",
-        "description": "Données DVF (Demandes de Valeurs Foncières) - données publiques",
+        "url": GEO_DVF_URL_TEMPLATE.format(year=2024),
+        "description": "DVF géolocalisées Paris (geo-dvf / data.gouv)",
+        "source": "data.gouv",
         "params": None,
-        "format": "json"
+        "format": "csv"
     },
     {
         "name": "insee_logements_sociaux",
@@ -27,17 +40,17 @@ REAL_ESTATE_APIS = [
 # Sources de données pour les indicateurs personnalisés
 CUSTOM_INDICATORS_APIS = [
     {
-        "name": "airparif_qualite_air",
-        "url": "https://www.data.gouv.fr/api/1/datasets/qualite-de-lair-mesuree-dans-la-station-chatelet-les-halles/",
-        "description": "Airparif - Qualité de l'air par arrondissement (via data.gouv.fr)",
-        "source": "data.gouv.fr / Airparif",
+        "name": "opendata_paris_air",
+        "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/qualite-de-l-air-indice-citeair-jusqu-a-2020/records",
+        "description": "Indice Citeair qualité de l'air (OpenData Paris / Airparif)",
+        "source": "OpenData Paris",
         "indicator": "pollution_qualite_air"
     },
     {
-        "name": "opendata_paris_delits",
-        "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/bodacc/records",
-        "description": "OpenData Paris - Délits et infractions enregistrés",
-        "source": "OpenData Paris",
+        "name": "datagouv_delinquance",
+        "url": DELINQUANCE_PARQUET_URL,
+        "description": "Délinquance enregistrée par commune (SSMSI / data.gouv)",
+        "source": "data.gouv",
         "indicator": "delits_enregistres"
     },
     {

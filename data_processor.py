@@ -7,8 +7,18 @@ import json
 import pandas as pd
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 import logging
+
+from data_normalization import (
+    build_data_quality,
+    dedupe_records,
+    is_missing,
+    normalize_date,
+    normalize_price,
+    normalize_surface_m2,
+    normalize_year,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -58,6 +68,8 @@ class DataProcessor:
         try:
             silver_data = {
                 "timestamp": bronze_data.get("timestamp", datetime.now().isoformat()),
+                "integration_report": bronze_data.get("integration_report", {}),
+                "sources_updated_at": bronze_data.get("sources_updated_at"),
                 "arrondissements": []
             }
             
@@ -87,27 +99,18 @@ class DataProcessor:
             prix_cleaned = []
             prix_raw = arr.get("prix_m2_median", [])
             
+            missing_fields: List[str] = []
+            imputed_fields: List[str] = []
+
             for prix_item in prix_raw:
                 if not isinstance(prix_item, dict):
                     continue
-                
-                date = prix_item.get("date")
-                prix = prix_item.get("prix_m2")
-                
-                # Valider et nettoyer
-                if date and prix:
-                    try:
-                        # Vérifier que le prix est raisonnable (entre 1000 et 50000 €/m²)
-                        prix_float = float(prix)
-                        if 1000 <= prix_float <= 50000:
-                            prix_cleaned.append({
-                                "date": date,
-                                "prix_m2": round(prix_float, 2)
-                            })
-                    except (ValueError, TypeError):
-                        continue
-            
-            # Trier par date
+                d = normalize_date(prix_item.get("date"))
+                p = normalize_price(prix_item.get("prix_m2"))
+                if d and p is not None:
+                    prix_cleaned.append({"date": d, "prix_m2": p})
+
+            prix_cleaned = dedupe_records(prix_cleaned, lambda x: x["date"])
             prix_cleaned.sort(key=lambda x: x["date"])
             
             # Nettoyer le pourcentage de logements sociaux
@@ -175,12 +178,15 @@ class DataProcessor:
             
             # Nettoyer les statistiques
             stats_raw = typologie_raw.get("statistiques", {})
+            surface_m2 = normalize_surface_m2(stats_raw.get("surface_moyenne_m2"))
+            if surface_m2 is None:
+                surface_m2 = normalize_surface_m2(arr.get("surface_moyenne_dvf_m2"))
             typologie_cleaned["statistiques"] = {
                 "nombre_total_logements": max(0, int(stats_raw.get("nombre_total_logements", 0))),
                 "logements_principaux": max(0, int(stats_raw.get("logements_principaux", 0))),
                 "logements_secondaires": max(0, int(stats_raw.get("logements_secondaires", 0))),
                 "logements_vacants": max(0, int(stats_raw.get("logements_vacants", 0))),
-                "surface_moyenne_m2": max(0, round(float(stats_raw.get("surface_moyenne_m2", 0)), 1)),
+                "surface_moyenne_m2": surface_m2 if surface_m2 is not None else 0.0,
                 "annee": int(stats_raw.get("annee", 2024))
             }
             
@@ -191,43 +197,56 @@ class DataProcessor:
             for evol in evolution_raw:
                 if not isinstance(evol, dict):
                     continue
-                
-                annee = evol.get("annee")
-                prix_median = evol.get("prix_m2_median")
-                nb_transactions = evol.get("nombre_transactions", 0)
-                
-                if annee and prix_median:
+                annee_int = normalize_year(evol.get("annee"))
+                prix_float = normalize_price(evol.get("prix_m2_median"))
+                if annee_int and prix_float is not None:
                     try:
-                        annee_int = int(annee)
-                        prix_float = float(prix_median)
-                        nb_int = int(nb_transactions)
-                        
-                        if 2020 <= annee_int <= 2030 and 1000 <= prix_float <= 50000:
-                            evolution_cleaned.append({
-                                "annee": annee_int,
-                                "prix_m2_median": round(prix_float, 2),
-                                "nombre_transactions": max(0, nb_int)
-                            })
+                        nb_int = max(0, int(evol.get("nombre_transactions", 0)))
                     except (ValueError, TypeError):
-                        continue
-            
-            # Trier par année
+                        nb_int = 0
+                    evolution_cleaned.append({
+                        "annee": annee_int,
+                        "prix_m2_median": prix_float,
+                        "nombre_transactions": nb_int,
+                    })
+
+            evolution_cleaned = dedupe_records(evolution_cleaned, lambda x: x["annee"])
             evolution_cleaned.sort(key=lambda x: x["annee"])
+
+            geocoding_cleaned = self._clean_geocoding_data(arr.get("geocoding", {}))
+            if not geocoding_cleaned.get("longitude"):
+                missing_fields.append("geocoding")
             
-            # Nettoyer les indicateurs personnalisés
-            pollution_cleaned = self._clean_pollution_data(arr.get("pollution_qualite_air", {}))
-            delits_cleaned = self._clean_delits_data(arr.get("delits_enregistres", {}))
-            revenus_cleaned = self._clean_revenus_data(arr.get("revenus_moyens", {}))
+            sources = arr.get("_sources", {})
+
+            pollution_cleaned = self._clean_pollution_data(
+                arr.get("pollution_qualite_air", {}),
+                has_source=bool(sources.get("pollution_qualite_air")),
+            )
+            delits_cleaned = self._clean_delits_data(
+                arr.get("delits_enregistres", {}),
+                has_source=bool(sources.get("delits_enregistres")),
+            )
+            revenus_cleaned = self._clean_revenus_data(
+                arr.get("revenus_moyens", {}),
+                has_source=bool(sources.get("revenus_moyens")),
+            )
+            if revenus_cleaned.get("_missing"):
+                missing_fields.append("revenus_moyens")
             densite_cleaned = self._clean_densite_data(arr.get("densite_population", {}))
             vegetation_cleaned = self._clean_vegetation_data(arr.get("vegetation_arbres", {}))
             transports_cleaned = self._clean_transports_data(arr.get("transports_publics", {}))
-            
+            loyers_cleaned = dict(arr.get("loyers") or {})
+            logements_sociaux_evolution = arr.get("logements_sociaux_evolution")
+
             return {
                 "arrondissement": arr_num,
                 "nom": arr.get("nom", f"{arr_num}e"),
                 "code_insee": arr.get("code_insee", f"751{arr_num:02d}"),
                 "prix_m2_median": prix_cleaned,
                 "logements_sociaux_pourcentage": logements_sociaux,
+                "logements_sociaux_evolution": logements_sociaux_evolution,
+                "loyers": loyers_cleaned,
                 "typologie": typologie_cleaned,
                 "evolution": evolution_cleaned,
                 "pollution_qualite_air": pollution_cleaned,
@@ -236,19 +255,55 @@ class DataProcessor:
                 "densite_population": densite_cleaned,
                 "vegetation_arbres": vegetation_cleaned,
                 "transports_publics": transports_cleaned,
+                "geocoding": geocoding_cleaned,
+                "_sources": sources,
                 "metadata": {
                     "cleaned_at": datetime.now().isoformat(),
                     "nb_prix_records": len(prix_cleaned),
-                    "nb_evolution_records": len(evolution_cleaned)
-                }
+                    "nb_evolution_records": len(evolution_cleaned),
+                    "data_quality": build_data_quality(missing_fields, imputed_fields),
+                },
             }
             
         except Exception as e:
             logger.error(f"Erreur lors du nettoyage de l'arrondissement {arr.get('arrondissement')}: {e}")
             return None
     
-    def _clean_pollution_data(self, pollution: Dict) -> Dict:
+    def _clean_geocoding_data(self, geocoding: Dict) -> Dict:
+        """Nettoie les coordonnées géocodées (BAN / Nominatim / DVF)."""
+        try:
+            lon = float(geocoding.get("longitude"))
+            lat = float(geocoding.get("latitude"))
+            if not (-180 <= lon <= 180 and -90 <= lat <= 90):
+                raise ValueError("coords invalides")
+            return {
+                "longitude": round(lon, 6),
+                "latitude": round(lat, 6),
+                "nb_points": max(0, int(geocoding.get("nb_points", 0))),
+                "providers": geocoding.get("providers", {}),
+                "annee": int(geocoding.get("annee", 2024)),
+            }
+        except Exception:
+            return {
+                "longitude": None,
+                "latitude": None,
+                "nb_points": 0,
+                "providers": {},
+                "annee": 2024,
+            }
+
+    def _clean_pollution_data(self, pollution: Dict, has_source: bool = True) -> Dict:
         """Nettoie les données de pollution/qualité de l'air."""
+        if not pollution and not has_source:
+            return {
+                "indice_atmo": None,
+                "pm25_moyen": None,
+                "pm10_moyen": None,
+                "no2_moyen": None,
+                "date_mesure": None,
+                "qualite": None,
+                "_missing": True,
+            }
         try:
             indice_atmo = pollution.get("indice_atmo", 5)
             pm25 = pollution.get("pm25_moyen", 15)
@@ -279,8 +334,18 @@ class DataProcessor:
                 "qualite": "moyenne"
             }
     
-    def _clean_delits_data(self, delits: Dict) -> Dict:
+    def _clean_delits_data(self, delits: Dict, has_source: bool = True) -> Dict:
         """Nettoie les données de délits."""
+        if not delits and not has_source:
+            return {
+                "total_delits": None,
+                "delits_par_1000_habitants": None,
+                "cambriolages": None,
+                "vols": None,
+                "violences": None,
+                "annee": None,
+                "_missing": True,
+            }
         try:
             total = max(0, int(delits.get("total_delits", 0)))
             par_1000 = max(0, float(delits.get("delits_par_1000_habitants", 0)))
@@ -306,8 +371,17 @@ class DataProcessor:
                 "annee": 2024
             }
     
-    def _clean_revenus_data(self, revenus: Dict) -> Dict:
+    def _clean_revenus_data(self, revenus: Dict, has_source: bool = True) -> Dict:
         """Nettoie les données de revenus."""
+        if not revenus or all(is_missing(revenus.get(k)) for k in ("revenu_median_menage", "revenu_moyen_menage")):
+            if not has_source:
+                return {
+                    "revenu_median_menage": None,
+                    "revenu_moyen_menage": None,
+                    "niveau_vie_median": None,
+                    "annee": None,
+                    "_missing": True,
+                }
         try:
             revenu_median = max(0, int(revenus.get("revenu_median_menage", 0)))
             revenu_moyen = max(0, int(revenus.get("revenu_moyen_menage", 0)))
@@ -425,6 +499,8 @@ class DataProcessor:
             gold_data = {
                 "timestamp": silver_data.get("timestamp"),
                 "generated_at": datetime.now().isoformat(),
+                "integration_report": silver_data.get("integration_report", {}),
+                "sources_updated_at": silver_data.get("sources_updated_at"),
                 "summary": {
                     "nb_arrondissements": len(silver_data.get("arrondissements", [])),
                     "periode_min": None,
@@ -499,7 +575,7 @@ class DataProcessor:
                         "taux_croissance_annuel": round((((prix_annee_final / prix_annee_initial) ** (1/nb_annees)) - 1) * 100, 2) if prix_annee_initial > 0 else 0
                     }
             
-            return {
+            base = {
                 "arrondissement": arr["arrondissement"],
                 "nom": arr["nom"],
                 "code_insee": arr["code_insee"],
@@ -507,6 +583,8 @@ class DataProcessor:
                 "evolution_calculee": evolution_calc,
                 "tendance_annuelle": tendance_annuelle,
                 "logements_sociaux_pourcentage": arr["logements_sociaux_pourcentage"],
+                "logements_sociaux_evolution": arr.get("logements_sociaux_evolution"),
+                "loyers": arr.get("loyers", {}),
                 "typologie": arr["typologie"],
                 "prix_m2_historique": prix_list,
                 "evolution_annuelle": evolution_list,
@@ -517,8 +595,12 @@ class DataProcessor:
                 "densite_population": arr.get("densite_population", {}),
                 "vegetation_arbres": arr.get("vegetation_arbres", {}),
                 "transports_publics": arr.get("transports_publics", {}),
-                "metadata": arr.get("metadata", {})
+                "geocoding": arr.get("geocoding", {}),
+                "_sources": arr.get("_sources", {}),
+                "metadata": arr.get("metadata", {}),
             }
+            from ude_platform.enrichment import enrich_arrondissement
+            return enrich_arrondissement(base)
             
         except Exception as e:
             logger.error(f"Erreur lors de l'enrichissement de l'arrondissement {arr.get('arrondissement')}: {e}")
@@ -606,6 +688,26 @@ class DataProcessor:
         if not self.save_gold_data(gold_data):
             logger.error("Impossible de sauvegarder les donnees Gold")
             return False
+
+        try:
+            from export_tables import TableExporter
+
+            exporter = TableExporter(
+                gold_data_file=str(self.gold_dir / "real_estate_data_gold_latest.json")
+            )
+            if exporter.export_all():
+                logger.info("[OK] Export data/export termine")
+            else:
+                logger.warning("Export data/export non realise (Gold manquant ou erreur)")
+        except Exception as e:
+            logger.warning("Export data/export ignore : %s", e)
+
+        try:
+            from ude_platform.pipeline_orchestration import finalize_pipeline
+            metrics = finalize_pipeline(self.gold_dir / "real_estate_data_gold_latest.json")
+            logger.info("[OK] Plateforme RNCP : %s", metrics.get("steps"))
+        except Exception as e:
+            logger.warning("Finalisation plateforme : %s", e)
         
         logger.info("=" * 60)
         logger.info("[OK] Pipeline de traitement termine avec succes")
