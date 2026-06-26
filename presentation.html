@@ -827,8 +827,46 @@
             </div>
         </div>
 
-        <!-- Slide 15: Demo -->
+        <!-- Slide 15: Indicateurs Sante de Proximite (NOUVEAU) -->
         <div class="slide" data-slide="15">
+            <div class="slide-content">
+                <span class="badge">Nouveau</span>
+                <h2>Sante de Proximite</h2>
+                <p>Accessibilite aux services de sante par arrondissement</p>
+                <div class="grid grid-2" style="margin-top: 2rem;">
+                    <div class="card">
+                        <h4>Donnees collectees</h4>
+                        <ul>
+                            <li><span class="highlight">Pharmacies</span> - total + gardes</li>
+                            <li><span class="highlight">Defibrillateurs</span> - DAE publics</li>
+                            <li><span class="highlight">Dentistes</span> - cabinets</li>
+                            <li><span class="highlight">Medecins</span> - generalistes</li>
+                            <li><span class="highlight">Centres sante</span> - municipaux</li>
+                            <li><span class="highlight">Hopitaux</span> - proximite urgences</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h4>Score Sante Proximite</h4>
+                        <div class="code-block">
+                            <span class="comment"># Formule ponderee</span><br>
+                            score = sum(ratio_i * poids_i)<br><br>
+                            <span class="comment"># Ponderations</span><br>
+                            pharmacies: 20%<br>
+                            medecins: 20%<br>
+                            urgences: 20%<br>
+                            dentistes: 15%<br>
+                            DAE: 10%<br>
+                            centres: 10%<br>
+                            hopitaux: 5%
+                        </div>
+                    </div>
+                </div>
+                <p style="margin-top: 1.5rem; font-size: 1rem;">Sources: OpenData Paris, FINESS, Assurance Maladie</p>
+            </div>
+        </div>
+
+        <!-- Slide 16: Demo -->
+        <div class="slide" data-slide="16">
             <div class="slide-content">
                 <h2>Demonstration</h2>
                 <div class="stats">
@@ -856,8 +894,8 @@
             </div>
         </div>
 
-        <!-- Slide 16: Conclusion -->
-        <div class="slide" data-slide="16">
+        <!-- Slide 17: Conclusion -->
+        <div class="slide" data-slide="17">
             <div class="slide-content">
                 <h2>Conclusion</h2>
                 <div class="grid grid-3">
@@ -901,7 +939,7 @@
         <button class="nav-btn" id="nextBtn">Suivant</button>
     </div>
 
-    <div class="slide-counter" id="counter">1 / 16</div>
+    <div class="slide-counter" id="counter">1 / 17</div>
 
     <script>
         const slides = document.querySelectorAll('.slide');
