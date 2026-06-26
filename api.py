@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 from typing import List, Optional, Dict
 from datetime import datetime
@@ -54,6 +55,7 @@ _cors_origins = os.getenv(
     "CORS_ORIGINS",
     "http://localhost:8001,http://127.0.0.1:5500,http://localhost:5500",
 ).split(",")
+app.add_middleware(GZipMiddleware, minimum_size=500)  # Compression des reponses > 500 bytes
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(ApiKeyMiddleware)
 app.add_middleware(

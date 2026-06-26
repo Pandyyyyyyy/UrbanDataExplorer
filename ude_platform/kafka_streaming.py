@@ -53,13 +53,26 @@ def publish_pipeline_completed_kafka(metrics: Optional[Dict[str, Any]] = None) -
 
 
 def check_kafka() -> bool:
+    """Verifie si Kafka est disponible (timeout rapide)."""
     try:
         from kafka import KafkaConsumer
+        import socket
+
+        # Test rapide de connexion TCP d'abord
+        servers = [s.strip() for s in KAFKA_BOOTSTRAP_SERVERS.split(",") if s.strip()]
+        host, port = servers[0].split(":")
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1)
+        result = sock.connect_ex((host, int(port)))
+        sock.close()
+        if result != 0:
+            return False
 
         consumer = KafkaConsumer(
-            bootstrap_servers=[s.strip() for s in KAFKA_BOOTSTRAP_SERVERS.split(",") if s.strip()],
-            consumer_timeout_ms=2000,
-            request_timeout_ms=3000,
+            bootstrap_servers=servers,
+            consumer_timeout_ms=1000,
+            request_timeout_ms=2000,
+            api_version_auto_timeout_ms=1000,
         )
         consumer.bootstrap_connected()
         consumer.close()

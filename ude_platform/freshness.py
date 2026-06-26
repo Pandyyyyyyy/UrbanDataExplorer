@@ -1,21 +1,34 @@
-"""Fraîcheur des données et métadonnées « analyse à l'instant T »."""
+"""Fraicheur des donnees et metadonnees analyse a l'instant T."""
 
 from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
+import time
 
 from ude_platform import streaming as streaming_module
 
+# Cache pour eviter les checks Kafka repetitifs (30s timeout)
+_kafka_cache = {"available": None, "checked_at": 0}
+_KAFKA_CACHE_TTL = 60  # Verifier Kafka max 1 fois par minute
+
 
 def _kafka_available() -> bool:
+    """Verifie si Kafka est disponible (avec cache)."""
+    now = time.time()
+    if _kafka_cache["available"] is not None and (now - _kafka_cache["checked_at"]) < _KAFKA_CACHE_TTL:
+        return _kafka_cache["available"]
+
     try:
         from ude_platform.kafka_streaming import check_kafka
-
-        return check_kafka()
+        result = check_kafka()
     except Exception:
-        return False
+        result = False
+
+    _kafka_cache["available"] = result
+    _kafka_cache["checked_at"] = now
+    return result
 
 
 def _parse_iso(ts: Any) -> Optional[datetime]:

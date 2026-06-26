@@ -75,40 +75,48 @@
 
                 <section class="sidebar-section">
                     <h2 class="section-label">Indicateurs</h2>
-                    <div class="indicators-list" role="listbox" aria-label="Sélection d'indicateur cartographique">
-                        <div class="indicator-item" data-indicator="prix" role="option" tabindex="0" aria-pressed="false">
-                            <span class="indicator-name">Prix au m²</span>
+                    <div class="indicators-list" role="listbox" aria-label="Selection d'indicateur cartographique">
+                        <div class="indicator-category">Immobilier</div>
+                        <div class="indicator-item active" data-indicator="prix" role="option" tabindex="0" aria-pressed="true">
+                            <span class="indicator-name">Prix au m2</span>
+                        </div>
+                        <div class="indicator-item" data-indicator="loyers" role="option" tabindex="0" aria-pressed="false">
+                            <span class="indicator-name">Loyers</span>
                         </div>
                         <div class="indicator-item" data-indicator="logements" role="option" tabindex="0" aria-pressed="false">
                             <span class="indicator-name">Logements sociaux</span>
                         </div>
-                        <div class="indicator-item" data-indicator="loyers" role="option" tabindex="0" aria-pressed="false">
-                            <span class="indicator-name">Loyers de référence</span>
-                        </div>
-                        <div class="indicator-item" data-indicator="accessibilite" role="option" tabindex="0" aria-pressed="false">
-                            <span class="indicator-name">Accessibilité</span>
-                        </div>
-                        <div class="indicator-item" data-indicator="pollution" role="option" tabindex="0" aria-pressed="false">
-                            <span class="indicator-name">Qualité de l'air</span>
-                        </div>
-                        <div class="indicator-item" data-indicator="delits" role="option" tabindex="0" aria-pressed="false">
-                            <span class="indicator-name">Délinquance</span>
-                        </div>
-                        <div class="indicator-item" data-indicator="revenus" role="option" tabindex="0" aria-pressed="false">
-                            <span class="indicator-name">Revenus médians</span>
-                        </div>
-                        <div class="indicator-item" data-indicator="vegetation" role="option" tabindex="0" aria-pressed="false">
-                            <span class="indicator-name">Végétation</span>
-                        </div>
-                        <div class="indicator-item" data-indicator="transports" role="option" tabindex="0" aria-pressed="false">
-                            <span class="indicator-name">Transports</span>
-                        </div>
-                        <div class="indicator-item" data-indicator="densite" role="option" tabindex="0" aria-pressed="false">
-                            <span class="indicator-name">Densité de population</span>
+                        <div class="indicator-item indicator-item--formula" data-indicator="accessibilite" role="option" tabindex="0" aria-pressed="false">
+                            <span class="indicator-name">Accessibilite</span>
+                            <span class="indicator-badge">formule</span>
                         </div>
                         <div class="indicator-item indicator-item--formula" data-indicator="tension" role="option" tabindex="0" aria-pressed="false">
                             <span class="indicator-name">Tension locative</span>
                             <span class="indicator-badge">formule</span>
+                        </div>
+
+                        <div class="indicator-category">Socio-economique</div>
+                        <div class="indicator-item" data-indicator="revenus" role="option" tabindex="0" aria-pressed="false">
+                            <span class="indicator-name">Revenus</span>
+                        </div>
+                        <div class="indicator-item indicator-item--formula" data-indicator="densite" role="option" tabindex="0" aria-pressed="false">
+                            <span class="indicator-name">Densite</span>
+                            <span class="indicator-badge">formule</span>
+                        </div>
+                        <div class="indicator-item" data-indicator="delits" role="option" tabindex="0" aria-pressed="false">
+                            <span class="indicator-name">Delinquance</span>
+                        </div>
+
+                        <div class="indicator-category">Environnement</div>
+                        <div class="indicator-item indicator-item--formula" data-indicator="pollution" role="option" tabindex="0" aria-pressed="false">
+                            <span class="indicator-name">Qualite de l'air</span>
+                            <span class="indicator-badge">formule</span>
+                        </div>
+                        <div class="indicator-item" data-indicator="vegetation" role="option" tabindex="0" aria-pressed="false">
+                            <span class="indicator-name">Vegetation</span>
+                        </div>
+                        <div class="indicator-item" data-indicator="transports" role="option" tabindex="0" aria-pressed="false">
+                            <span class="indicator-name">Transports</span>
                         </div>
                     </div>
                     <div id="indicator-formula" class="indicator-formula hidden" role="note" aria-live="polite"></div>

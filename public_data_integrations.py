@@ -450,13 +450,20 @@ class PublicDataIntegrator:
         records = payload["results"]
         latest = records[0]
         annee = int(latest.get("annee", 2020))
+        tres_faible = float(latest.get("ind_jour_qa_tres_faible", 0) or 0)
+        faible = float(latest.get("ind_jour_qa_faible", 0) or 0)
+        moyenne = float(latest.get("ind_jour_qa_moyenne", 0) or 0)
         eleve = float(latest.get("ind_jour_qa_eleve", 0) or 0)
         tres_eleve = float(latest.get("ind_jour_qa_tres_eleve", 0) or 0)
-        moyenne = float(latest.get("ind_jour_qa_moyenne", 0) or 0)
-        faible = float(latest.get("ind_jour_qa_faible", 0) or 0)
-        total_jours = eleve + tres_eleve + moyenne + faible + float(latest.get("ind_jour_qa_tres_faible", 0) or 0)
-        ratio_mauvais = (eleve + tres_eleve) / total_jours if total_jours > 0 else 0.1
-        indice_atmo = round(min(10, max(1, 1 + ratio_mauvais * 20)), 1)
+        total_jours = tres_faible + faible + moyenne + eleve + tres_eleve
+        # Moyenne pondérée selon l'échelle ATMO (1=très bon, 10=très mauvais)
+        if total_jours > 0:
+            indice_atmo = round(
+                (tres_faible * 1.5 + faible * 3 + moyenne * 5 + eleve * 7.5 + tres_eleve * 9.5) / total_jours,
+                1
+            )
+        else:
+            indice_atmo = 4.0  # Valeur par défaut réaliste pour Paris
 
         meta = source_meta(
             "OpenData Paris",
@@ -466,11 +473,13 @@ class PublicDataIntegrator:
             note="Indice dérivé des statistiques Citeair (échelle Paris, appliqué à tous les arrondissements).",
         )
 
+        # Estimation des polluants basée sur l'indice ATMO (valeurs typiques pour Paris)
+        indice_norm = (indice_atmo - 1) / 9  # Normaliser entre 0 et 1
         air = {
             "indice_atmo": indice_atmo,
-            "pm25_moyen": round(8 + ratio_mauvais * 25, 2),
-            "pm10_moyen": round(15 + ratio_mauvais * 35, 2),
-            "no2_moyen": round(25 + ratio_mauvais * 50, 2),
+            "pm25_moyen": round(8 + indice_norm * 20, 2),   # 8-28 µg/m³
+            "pm10_moyen": round(15 + indice_norm * 30, 2),  # 15-45 µg/m³
+            "no2_moyen": round(20 + indice_norm * 40, 2),   # 20-60 µg/m³
             "date_mesure": f"{annee}-12-31",
             "qualite": "bonne" if indice_atmo <= 3 else "moyenne" if indice_atmo <= 6 else "mauvaise",
             "annee_reference": annee,

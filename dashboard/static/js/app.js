@@ -1,5 +1,64 @@
 const API_BASE_URL = window.API_BASE_URL || 'http://localhost:8001';
 const MAP_OUTLINE = { light: '#e2e8f0', dark: '#0f172a' };
+
+// === CACHE SYSTEME ===
+const CACHE_VERSION = 'v1';
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+const DataCache = {
+    _key(name, params = {}) {
+        return `ude_cache_${CACHE_VERSION}_${name}_${JSON.stringify(params)}`;
+    },
+    get(name, params = {}) {
+        try {
+            const raw = localStorage.getItem(this._key(name, params));
+            if (!raw) return null;
+            const { data, timestamp } = JSON.parse(raw);
+            if (Date.now() - timestamp > CACHE_TTL_MS) {
+                localStorage.removeItem(this._key(name, params));
+                return null;
+            }
+            return data;
+        } catch { return null; }
+    },
+    set(name, data, params = {}) {
+        try {
+            localStorage.setItem(this._key(name, params), JSON.stringify({
+                data,
+                timestamp: Date.now()
+            }));
+        } catch (e) {
+            console.warn('Cache write failed:', e);
+        }
+    },
+    clear() {
+        Object.keys(localStorage)
+            .filter(k => k.startsWith('ude_cache_'))
+            .forEach(k => localStorage.removeItem(k));
+    }
+};
+
+// === LOADING INDICATOR ===
+function showLoading(show = true) {
+    let loader = document.getElementById('loading-overlay');
+    if (!loader && show) {
+        loader = document.createElement('div');
+        loader.id = 'loading-overlay';
+        loader.innerHTML = `
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Chargement des donnees...</div>
+        `;
+        document.body.appendChild(loader);
+    }
+    if (loader) {
+        loader.style.display = show ? 'flex' : 'none';
+    }
+}
+
+function updateLoadingText(text) {
+    const el = document.querySelector('.loading-text');
+    if (el) el.textContent = text;
+}
 /** Échelle cyan commune (prix, loyers, logements, etc.) */
 const MAP_BASE = ['#0c2d48', '#0e5a7a', '#0e94b8', '#38d9f5', '#a8ecff'];
 const AIR_GOOD_TO_BAD = ['#34d399', '#a3e635', '#fbbf24', '#f97316', '#ef4444'];
@@ -127,17 +186,39 @@ const arrondissementCoords = {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadPolygons();
-    loadTransportsData();
-    initializeMap();
-    await loadFreshness();
-    await loadData();
-    initializeCharts();
-    setupEventListeners();
-    updateMapLegend();
-    updateIndicatorFormulaPanel();
-    await updateMap();
-    updateGlobalStats();
+    const t0 = performance.now();
+    showLoading(true);
+
+    try {
+        // Chargement parallele des ressources statiques
+        updateLoadingText('Chargement de la carte...');
+        await loadPolygons();
+        loadTransportsData();
+        initializeMap();
+
+        // Chargement parallele des donnees API
+        updateLoadingText('Chargement des donnees...');
+        await Promise.all([
+            loadFreshness(),
+            loadData()
+        ]);
+
+        // Initialisation de l'interface
+        updateLoadingText('Initialisation...');
+        initializeCharts();
+        setupEventListeners();
+        updateMapLegend();
+        updateIndicatorFormulaPanel();
+        await updateMap();
+        updateGlobalStats();
+
+        console.log(`Dashboard charge en ${Math.round(performance.now() - t0)}ms`);
+    } catch (error) {
+        console.error('Erreur initialisation:', error);
+        showError('Erreur lors du chargement du dashboard');
+    } finally {
+        showLoading(false);
+    }
 });
 
 async function loadFreshness() {
@@ -156,20 +237,42 @@ async function loadFreshness() {
     }
 }
 
-async function loadData() {
+async function loadData(forceRefresh = false) {
+    const cacheKey = { year: selectedYear };
+
+    // Essayer le cache d'abord
+    if (!forceRefresh) {
+        const cached = DataCache.get('arrondissements', cacheKey);
+        if (cached) {
+            console.log('Donnees chargees depuis le cache');
+            allData = cached.arrondissements;
+            updateFreshnessFromPayload(cached.freshness);
+            updateLogementsSociauxChart();
+            updateAccessibiliteChart();
+            updateIndicatorFormulaPanel();
+            updateUniformDataNotice();
+            return;
+        }
+    }
+
+    // Charger depuis l'API
     try {
         const response = await fetch(`${API_BASE_URL}/arrondissements?annee=${selectedYear}`);
         const data = await response.json();
         allData = data.arrondissements;
+
+        // Mettre en cache
+        DataCache.set('arrondissements', data, cacheKey);
+
         updateFreshnessFromPayload(data.freshness);
-        console.log('Données chargées:', allData);
+        console.log('Donnees chargees depuis API:', allData.length, 'arrondissements');
         updateLogementsSociauxChart();
         updateAccessibiliteChart();
         updateIndicatorFormulaPanel();
         updateUniformDataNotice();
     } catch (error) {
         console.error('Erreur:', error);
-        showError('Impossible de charger les données. Vérifiez que l\'API est démarrée.');
+        showError('Impossible de charger les donnees. Verifiez que l\'API est demarree.');
     }
 }
 
@@ -213,7 +316,10 @@ function initializeMap() {
                 }]
             },
             center: [2.3522, 48.8566],
-            zoom: 12,
+            zoom: 11.5,
+            minZoom: 10.5,
+            maxZoom: 15,
+            maxBounds: [[2.15, 48.75], [2.55, 48.95]],
             pitch: 0,
             bearing: 0
         });
@@ -1209,10 +1315,10 @@ function getColorExpressionForIndicator(indicator) {
         case 'pollution':
             return [
                 'case',
-                ['<=', ['get', 'value'], 1.05], AIR_GOOD_TO_BAD[0],
-                ['<=', ['get', 'value'], 1.15], AIR_GOOD_TO_BAD[1],
-                ['<=', ['get', 'value'], 1.25], AIR_GOOD_TO_BAD[2],
-                ['<=', ['get', 'value'], 1.35], AIR_GOOD_TO_BAD[3],
+                ['<=', ['get', 'value'], 2.9], AIR_GOOD_TO_BAD[0],
+                ['<=', ['get', 'value'], 3.1], AIR_GOOD_TO_BAD[1],
+                ['<=', ['get', 'value'], 3.2], AIR_GOOD_TO_BAD[2],
+                ['<=', ['get', 'value'], 3.3], AIR_GOOD_TO_BAD[3],
                 AIR_GOOD_TO_BAD[4],
             ];
         case 'vegetation':
@@ -1265,10 +1371,10 @@ function getColorForIndicator(indicator, value) {
         case 'delits':
             return baseColorAt(value, 40, 80, 120, 200, true);
         case 'pollution':
-            if (value <= 1.05) return AIR_GOOD_TO_BAD[0];
-            if (value <= 1.15) return AIR_GOOD_TO_BAD[1];
-            if (value <= 1.25) return AIR_GOOD_TO_BAD[2];
-            if (value <= 1.35) return AIR_GOOD_TO_BAD[3];
+            if (value <= 2.9) return AIR_GOOD_TO_BAD[0];
+            if (value <= 3.1) return AIR_GOOD_TO_BAD[1];
+            if (value <= 3.2) return AIR_GOOD_TO_BAD[2];
+            if (value <= 3.3) return AIR_GOOD_TO_BAD[3];
             return AIR_GOOD_TO_BAD[4];
         case 'vegetation':
             if (value < 200) return VEG_NONE_TO_DENSE[0];

@@ -45,7 +45,7 @@ def test_logements_sociaux_evolution_fallback_shape():
 
 
 def test_pollution_local_index_varies_by_density():
-    base = {"indice_atmo": 1.2, "qualite": "bonne"}
+    base = {"indice_atmo": 4.0, "qualite": "moyenne"}
     low = enrich_arrondissement({
         "arrondissement": 16,
         "pollution_qualite_air": base,
@@ -61,4 +61,4 @@ def test_pollution_local_index_varies_by_density():
     low_idx = low["pollution_qualite_air"]["indice_atmo_local"]
     high_idx = high["pollution_qualite_air"]["indice_atmo_local"]
     assert low_idx < high_idx
-    assert low["pollution_qualite_air"]["indice_atmo_paris"] == 1.2
+    assert low["pollution_qualite_air"]["indice_atmo_paris"] == 4.0
