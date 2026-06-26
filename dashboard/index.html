@@ -37,6 +37,10 @@
                 <button id="compare-mode-btn" class="btn-modern btn-secondary" aria-expanded="false" aria-controls="compare-panel">
                     Comparer
                 </button>
+                <button id="theme-toggle" class="theme-toggle" aria-label="Changer de theme">
+                    <span class="icon-sun">&#9728;</span>
+                    <span class="icon-moon">&#9790;</span>
+                </button>
             </div>
         </header>
 
@@ -117,6 +121,16 @@
                         </div>
                         <div class="indicator-item" data-indicator="transports" role="option" tabindex="0" aria-pressed="false">
                             <span class="indicator-name">Transports</span>
+                        </div>
+
+                        <div class="indicator-category">Scores</div>
+                        <div class="indicator-item indicator-item--formula" data-indicator="score_global" role="option" tabindex="0" aria-pressed="false">
+                            <span class="indicator-name">Score Global</span>
+                            <span class="indicator-badge">formule</span>
+                        </div>
+                        <div class="indicator-item indicator-item--formula" data-indicator="potentiel" role="option" tabindex="0" aria-pressed="false">
+                            <span class="indicator-name">Potentiel Plus-Value</span>
+                            <span class="indicator-badge">formule</span>
                         </div>
                     </div>
                     <div id="indicator-formula" class="indicator-formula hidden" role="note" aria-live="polite"></div>

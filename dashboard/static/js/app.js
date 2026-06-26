@@ -1,6 +1,106 @@
 const API_BASE_URL = window.API_BASE_URL || 'http://localhost:8001';
 const MAP_OUTLINE = { light: '#e2e8f0', dark: '#0f172a' };
 
+// === THEME TOGGLE ===
+function initTheme() {
+    const saved = localStorage.getItem('ude_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+}
+
+function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('ude_theme', next);
+}
+
+// Initialize theme immediately
+initTheme();
+
+// === SCORE GLOBAL (weighted metrics) ===
+function calculateGlobalScore(arr) {
+    // Ponderations des metriques (total = 100%)
+    const weights = {
+        prix: 0.15,           // Prix accessible = mieux (inverse)
+        accessibilite: 0.20,  // Accessibilite = mieux si bas (inverse)
+        securite: 0.15,       // Delits bas = mieux (inverse)
+        transports: 0.15,     // Plus de transports = mieux
+        vegetation: 0.10,     // Plus d'arbres = mieux
+        qualite_air: 0.10,    // Indice bas = mieux (inverse)
+        logements_sociaux: 0.05, // Plus = mieux pour mixite
+        revenus: 0.10         // Revenus eleves = mieux
+    };
+
+    // Normalisation des valeurs (0-100)
+    const prix = arr.statistiques?.prix_m2_actuel || 0;
+    const access = arr.accessibilite_logement?.mois_revenu_pour_50m2_achat || 0;
+    const delits = arr.delits_enregistres?.delits_par_1000_habitants || 0;
+    const transports = arr.transports_publics?.total_transports || 0;
+    const arbres = arr.vegetation_arbres?.nombre_arbres || 0;
+    const air = arr.pollution_qualite_air?.indice_atmo_local || arr.pollution_qualite_air?.indice_atmo || 3;
+    const logSoc = arr.logements_sociaux_pourcentage || 0;
+    const revenus = arr.revenus_moyens?.revenu_median_menage || 0;
+
+    // Scores normalises (0-100, ou 100 = meilleur)
+    const scores = {
+        prix: Math.max(0, 100 - ((prix - 8000) / (16000 - 8000)) * 100),
+        accessibilite: Math.max(0, 100 - ((access - 150) / (250 - 150)) * 100),
+        securite: Math.max(0, 100 - ((delits - 20) / (200 - 20)) * 100),
+        transports: Math.min(100, (transports / 60) * 100),
+        vegetation: Math.min(100, (arbres / 5000) * 100),
+        qualite_air: Math.max(0, 100 - ((air - 2.5) / (4 - 2.5)) * 100),
+        logements_sociaux: Math.min(100, (logSoc / 30) * 100),
+        revenus: Math.min(100, ((revenus - 20000) / (50000 - 20000)) * 100)
+    };
+
+    // Score global pondere
+    let totalScore = 0;
+    for (const [key, weight] of Object.entries(weights)) {
+        totalScore += (scores[key] || 0) * weight;
+    }
+
+    return Math.round(Math.max(0, Math.min(100, totalScore)));
+}
+
+// === POTENTIEL PLUS-VALUE (formule creative) ===
+// Estime le potentiel de plus-value basee sur plusieurs facteurs
+function calculatePotentielPlusValue(arr) {
+    // Facteurs positifs pour la plus-value future
+    const prix = arr.statistiques?.prix_m2_actuel || 0;
+    const variation = arr.evolution_calculee?.variation_pourcentage || 0;
+    const transports = arr.transports_publics?.total_transports || 0;
+    const arbres = arr.vegetation_arbres?.nombre_arbres || 0;
+    const logSoc = arr.logements_sociaux_pourcentage || 0;
+    const delits = arr.delits_enregistres?.delits_par_1000_habitants || 0;
+
+    // Calcul du potentiel
+    // 1. Prix encore accessible (pas sature) = potentiel de hausse
+    const prixScore = prix < 10000 ? 30 : (prix < 12000 ? 20 : (prix < 14000 ? 10 : 0));
+
+    // 2. Dynamique positive recente
+    const dynamiqueScore = variation > 3 ? 25 : (variation > 0 ? 15 : (variation > -3 ? 5 : 0));
+
+    // 3. Bonne desserte transports (attractivite)
+    const transportScore = transports > 40 ? 20 : (transports > 20 ? 15 : (transports > 10 ? 10 : 5));
+
+    // 4. Cadre de vie (vegetation)
+    const vegScore = arbres > 3000 ? 15 : (arbres > 1500 ? 10 : 5);
+
+    // 5. Mixite sociale (ni trop, ni trop peu de logements sociaux)
+    const mixiteScore = (logSoc >= 15 && logSoc <= 25) ? 10 : 5;
+
+    // 6. Securite (bonus si securise)
+    const securiteScore = delits < 50 ? 10 : (delits < 100 ? 5 : 0);
+
+    const total = prixScore + dynamiqueScore + transportScore + vegScore + mixiteScore + securiteScore;
+
+    return {
+        score: total,
+        niveau: total >= 70 ? 'Eleve' : (total >= 45 ? 'Moyen' : 'Faible'),
+        classe: total >= 70 ? 'high' : (total >= 45 ? 'medium' : 'low')
+    };
+}
+
 // === CACHE SYSTEME ===
 const CACHE_VERSION = 'v1';
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
@@ -1263,6 +1363,18 @@ const INDICATOR_FORMULAS = {
         unit: 'indice 1–10',
         note: 'Indice Citeair Paris (identique pour tous) ajusté par densité et transports pour varier sur la carte.',
     },
+    score_global: {
+        title: 'Score Global Qualité de Vie',
+        formula: 'Σ (indicateur_normalisé × pondération)',
+        unit: 'score 0–100',
+        note: 'Score pondéré : prix (15%), accessibilité (20%), sécurité (15%), transports (15%), végétation (10%), air (10%), logements sociaux (5%), revenus (10%).',
+    },
+    potentiel: {
+        title: 'Potentiel Plus-Value',
+        formula: 'f(prix, dynamique, transports, cadre, mixité, sécurité)',
+        unit: 'score 0–100',
+        note: 'Estimation du potentiel de valorisation future basée sur : accessibilité prix, dynamique récente, desserte transports, cadre de vie, mixité sociale et sécurité.',
+    },
 };
 
 function selectIndicator(indicator) {
@@ -1330,6 +1442,26 @@ function getColorExpressionForIndicator(indicator) {
                 ['<', ['get', 'value'], 2000], VEG_NONE_TO_DENSE[3],
                 VEG_NONE_TO_DENSE[4],
             ];
+        case 'score_global':
+            // Score 0-100, vert = mieux
+            return [
+                'case',
+                ['<', ['get', 'value'], 30], AIR_GOOD_TO_BAD[4],
+                ['<', ['get', 'value'], 45], AIR_GOOD_TO_BAD[3],
+                ['<', ['get', 'value'], 60], AIR_GOOD_TO_BAD[2],
+                ['<', ['get', 'value'], 75], AIR_GOOD_TO_BAD[1],
+                AIR_GOOD_TO_BAD[0],
+            ];
+        case 'potentiel':
+            // Potentiel 0-100, vert = fort potentiel
+            return [
+                'case',
+                ['<', ['get', 'value'], 35], AIR_GOOD_TO_BAD[4],
+                ['<', ['get', 'value'], 50], AIR_GOOD_TO_BAD[3],
+                ['<', ['get', 'value'], 65], AIR_GOOD_TO_BAD[2],
+                ['<', ['get', 'value'], 80], AIR_GOOD_TO_BAD[1],
+                AIR_GOOD_TO_BAD[0],
+            ];
         default:
             return seqLtExpr(8000, 10000, 12000, 15000);
     }
@@ -1382,6 +1514,18 @@ function getColorForIndicator(indicator, value) {
             if (value < 1000) return VEG_NONE_TO_DENSE[2];
             if (value < 2000) return VEG_NONE_TO_DENSE[3];
             return VEG_NONE_TO_DENSE[4];
+        case 'score_global':
+            if (value < 30) return AIR_GOOD_TO_BAD[4];
+            if (value < 45) return AIR_GOOD_TO_BAD[3];
+            if (value < 60) return AIR_GOOD_TO_BAD[2];
+            if (value < 75) return AIR_GOOD_TO_BAD[1];
+            return AIR_GOOD_TO_BAD[0];
+        case 'potentiel':
+            if (value < 35) return AIR_GOOD_TO_BAD[4];
+            if (value < 50) return AIR_GOOD_TO_BAD[3];
+            if (value < 65) return AIR_GOOD_TO_BAD[2];
+            if (value < 80) return AIR_GOOD_TO_BAD[1];
+            return AIR_GOOD_TO_BAD[0];
         default:
             return MAP_BASE[2];
     }
@@ -1415,6 +1559,10 @@ function getIndicatorValue(arr, indicator, year) {
             return arr.vegetation_arbres?.nombre_arbres || 0;
         case 'transports':
             return arr.transports_publics?.total_transports || 0;
+        case 'score_global':
+            return calculateGlobalScore(arr);
+        case 'potentiel':
+            return calculatePotentielPlusValue(arr).score;
         default:
             return arr.statistiques?.prix_m2_actuel || 0;
     }
@@ -1541,9 +1689,34 @@ function updateSelectedInfo(arr) {
     const densite = arr.densite_population?.densite_km2;
     const access = arr.accessibilite_logement?.mois_revenu_pour_50m2_achat;
 
+    // Calcul des scores
+    const globalScore = calculateGlobalScore(arr);
+    const potentiel = calculatePotentielPlusValue(arr);
+
+    // Calcul du rang pour le score global
+    const allScores = allData.map(a => ({ arr: a.arrondissement, score: calculateGlobalScore(a) }))
+        .sort((a, b) => b.score - a.score);
+    const rank = allScores.findIndex(s => s.arr === arr.arrondissement) + 1;
+
     infoDiv.innerHTML = `
         <div class="info-content">
             <div class="info-title">${arr.arrondissement}<sup>e</sup> Arrondissement</div>
+
+            <div class="global-score">
+                <div class="global-score-label">Score Global Qualite de Vie</div>
+                <div class="global-score-value">${globalScore}</div>
+                <div class="global-score-rank">${rank}<sup>e</sup> / 20 arrondissements</div>
+                <div class="score-bar">
+                    <div class="score-bar-fill" style="width: ${globalScore}%"></div>
+                </div>
+            </div>
+
+            <div class="potentiel-section">
+                <div class="potentiel-label">Potentiel Plus-Value</div>
+                <div class="potentiel-value ${potentiel.classe}">${potentiel.niveau} (${potentiel.score}/100)</div>
+                <div class="potentiel-detail">Estimation basee sur prix, dynamique, transports, cadre de vie</div>
+            </div>
+
             <div class="info-item">
                 <span class="info-label">Prix/m2</span>
                 <span class="info-value">${prix ? prix.toLocaleString('fr-FR') + ' €' : 'N/A'}</span>
@@ -2161,6 +2334,9 @@ function setupEventListeners() {
         document.getElementById('map-guide')?.classList.add('hidden');
     });
 
+    // Theme toggle
+    document.getElementById('theme-toggle')?.addEventListener('click', toggleTheme);
+
     // Comparaison
     document.getElementById('compare-execute').addEventListener('click', async () => {
         const arr1 = document.getElementById('compare-arr1').value;
@@ -2383,7 +2559,9 @@ function getIndicatorName(indicator) {
         'revenus': 'Revenus',
         'densite': 'Densité',
         'vegetation': 'Végétation',
-        'transports': 'Transports'
+        'transports': 'Transports',
+        'score_global': 'Score Global',
+        'potentiel': 'Potentiel Plus-Value'
     };
     return names[indicator] || indicator;
 }
@@ -2412,6 +2590,10 @@ function getIndicatorLabel(indicator, value) {
             return value.toLocaleString('fr-FR') + ' arbres';
         case 'transports':
             return value.toLocaleString('fr-FR') + ' transports';
+        case 'score_global':
+            return value + '/100';
+        case 'potentiel':
+            return value + '/100';
         default:
             return value;
     }
