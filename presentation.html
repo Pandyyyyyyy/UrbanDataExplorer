@@ -393,7 +393,7 @@
                         <div class="stat-label">Arrondissements</div>
                     </div>
                     <div class="stat">
-                        <div class="stat-value">11</div>
+                        <div class="stat-value">13</div>
                         <div class="stat-label">Indicateurs</div>
                     </div>
                     <div class="stat">
@@ -524,7 +524,7 @@
         <!-- Slide 6: Indicateurs -->
         <div class="slide" data-slide="6">
             <div class="slide-content">
-                <h2>11 Indicateurs Metier</h2>
+                <h2>13 Indicateurs Metier</h2>
                 <div class="two-cols">
                     <div>
                         <h3>Indicateurs Immobiliers</h3>
@@ -548,8 +548,80 @@
             </div>
         </div>
 
-        <!-- Slide 7: Formules de Calcul -->
+        <!-- Slide 7: Score Global (NOUVEAU) -->
         <div class="slide" data-slide="7">
+            <div class="slide-content">
+                <h2>Score Global Qualite de Vie</h2>
+                <p>Indicateur composite pondere pour comparer les arrondissements</p>
+                <div class="grid grid-3" style="margin-top: 2rem;">
+                    <div class="card">
+                        <h4>Ponderations</h4>
+                        <ul>
+                            <li>Accessibilite : 20%</li>
+                            <li>Prix : 15%</li>
+                            <li>Securite : 15%</li>
+                            <li>Transports : 15%</li>
+                            <li>Revenus : 10%</li>
+                            <li>Vegetation : 10%</li>
+                            <li>Air : 10%</li>
+                            <li>Logements sociaux : 5%</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h4>Calcul</h4>
+                        <div class="formula">Score = Sum(indicateur_normalise x poids)</div>
+                        <p style="font-size: 1rem; margin-top: 1rem;">Chaque indicateur est normalise sur une echelle 0-100 avant ponderation</p>
+                    </div>
+                    <div class="card">
+                        <h4>Resultat</h4>
+                        <ul>
+                            <li>Score de 0 a 100</li>
+                            <li>Classement 1er a 20e</li>
+                            <li>Barre de progression</li>
+                            <li>Couleur sur la carte</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Potentiel Plus-Value (NOUVEAU) -->
+        <div class="slide" data-slide="8">
+            <div class="slide-content">
+                <h2>Potentiel Plus-Value</h2>
+                <p>Formule creative pour estimer le potentiel de valorisation future</p>
+                <div class="grid" style="margin-top: 2rem;">
+                    <div class="card">
+                        <h4>Prix Accessible</h4>
+                        <p>Arrondissements a prix encore moderere = potentiel de hausse</p>
+                        <div class="formula">prix &lt; 10k = +30pts | prix &lt; 12k = +20pts</div>
+                    </div>
+                    <div class="card">
+                        <h4>Dynamique Recente</h4>
+                        <p>Tendance positive des prix = marche porteur</p>
+                        <div class="formula">variation &gt; 3% = +25pts | variation &gt; 0 = +15pts</div>
+                    </div>
+                    <div class="card">
+                        <h4>Desserte Transports</h4>
+                        <p>Bonne connexion = attractivite future</p>
+                        <div class="formula">transports &gt; 40 = +20pts | &gt; 20 = +15pts</div>
+                    </div>
+                    <div class="card">
+                        <h4>Cadre de Vie</h4>
+                        <p>Vegetation, mixite sociale, securite</p>
+                        <div class="formula">arbres + mixite + securite = jusqu'a +35pts</div>
+                    </div>
+                </div>
+                <div style="margin-top: 2rem;">
+                    <span class="badge">Eleve &gt; 70</span>
+                    <span class="badge">Moyen 45-70</span>
+                    <span class="badge">Faible &lt; 45</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 9: Formules de Calcul -->
+        <div class="slide" data-slide="9">
             <div class="slide-content">
                 <h2>Indicateurs avec Formules</h2>
                 <p>Calculs personnalises pour des metriques pertinentes</p>
@@ -573,8 +645,8 @@
             </div>
         </div>
 
-        <!-- Slide 8: API REST -->
-        <div class="slide" data-slide="8">
+        <!-- Slide 10: API REST -->
+        <div class="slide" data-slide="10">
             <div class="slide-content">
                 <h2>API REST FastAPI</h2>
                 <p>15+ endpoints documentes avec Swagger</p>
@@ -613,8 +685,8 @@
             </div>
         </div>
 
-        <!-- Slide 9: Dashboard -->
-        <div class="slide" data-slide="9">
+        <!-- Slide 11: Dashboard -->
+        <div class="slide" data-slide="11">
             <div class="slide-content">
                 <h2>Dashboard Interactif</h2>
                 <div class="grid grid-3">
@@ -648,8 +720,8 @@
             </div>
         </div>
 
-        <!-- Slide 10: Pipeline CI/CD -->
-        <div class="slide" data-slide="10">
+        <!-- Slide 12: Pipeline CI/CD -->
+        <div class="slide" data-slide="12">
             <div class="slide-content">
                 <h2>Pipeline CI/CD</h2>
                 <p>Automatisation complete avec GitHub Actions</p>
@@ -682,44 +754,81 @@
             </div>
         </div>
 
-        <!-- Slide 11: Conformite -->
-        <div class="slide" data-slide="11">
+        <!-- Slide 13: Securite et Quotas API -->
+        <div class="slide" data-slide="13">
             <div class="slide-content">
-                <h2>Conformite et Gouvernance</h2>
+                <h2>Securite et Quotas API</h2>
+                <p>Protection avancee contre les abus</p>
                 <div class="grid grid-3">
                     <div class="card">
-                        <h4>RGPD</h4>
+                        <h4>Rate Limiting</h4>
                         <ul>
-                            <li>Donnees anonymisees</li>
-                            <li>Pas de donnees personnelles</li>
-                            <li>Sources Open Data</li>
-                            <li>Documentation tracabilite</li>
+                            <li>60 requetes/min/IP</li>
+                            <li>1000 requetes/jour/IP</li>
+                            <li>Limites par endpoint</li>
+                            <li>Headers X-RateLimit-*</li>
                         </ul>
                     </div>
                     <div class="card">
-                        <h4>Qualite des Donnees</h4>
+                        <h4>Endpoints Sensibles</h4>
                         <ul>
-                            <li>Validation Bronze→Silver</li>
-                            <li>Tests unitaires</li>
-                            <li>Catalogue de gouvernance</li>
-                            <li>Lineage documente</li>
+                            <li>/export : 10 req/min</li>
+                            <li>/geo-points : 20 req/min</li>
+                            <li>/comparaison : 30 req/min</li>
+                            <li>Monitoring /quota-usage</li>
                         </ul>
                     </div>
                     <div class="card">
-                        <h4>Securite API</h4>
+                        <h4>Reponses</h4>
                         <ul>
-                            <li>Rate limiting</li>
-                            <li>CORS configure</li>
-                            <li>Headers securises</li>
-                            <li>Logs structures</li>
+                            <li>HTTP 429 si depasse</li>
+                            <li>Header Retry-After</li>
+                            <li>Tracking des blocages</li>
+                            <li>Stats par IP</li>
                         </ul>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Slide 12: Demo -->
-        <div class="slide" data-slide="12">
+        <!-- Slide 14: UX et Light Mode -->
+        <div class="slide" data-slide="14">
+            <div class="slide-content">
+                <h2>Experience Utilisateur</h2>
+                <div class="grid grid-3">
+                    <div class="card">
+                        <h4>Light Mode</h4>
+                        <ul>
+                            <li>Theme clair/sombre</li>
+                            <li>Toggle en 1 clic</li>
+                            <li>Preference sauvegardee</li>
+                            <li>CSS variables</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h4>Performance</h4>
+                        <ul>
+                            <li>Cache localStorage 5min</li>
+                            <li>Compression GZip 91%</li>
+                            <li>Temps reponse 11ms</li>
+                            <li>Loading indicator</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <h4>Accessibilite</h4>
+                        <ul>
+                            <li>Navigation clavier</li>
+                            <li>ARIA labels</li>
+                            <li>Contraste optimal</li>
+                            <li>Responsive design</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 15: Demo -->
+        <div class="slide" data-slide="15">
             <div class="slide-content">
                 <h2>Demonstration</h2>
                 <div class="stats">
@@ -747,8 +856,8 @@
             </div>
         </div>
 
-        <!-- Slide 13: Conclusion -->
-        <div class="slide" data-slide="13">
+        <!-- Slide 16: Conclusion -->
+        <div class="slide" data-slide="16">
             <div class="slide-content">
                 <h2>Conclusion</h2>
                 <div class="grid grid-3">
@@ -792,7 +901,7 @@
         <button class="nav-btn" id="nextBtn">Suivant</button>
     </div>
 
-    <div class="slide-counter" id="counter">1 / 13</div>
+    <div class="slide-counter" id="counter">1 / 16</div>
 
     <script>
         const slides = document.querySelectorAll('.slide');
