@@ -13,15 +13,18 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
 UDE_API_KEY = os.getenv("UDE_API_KEY", "").strip()
-API_RATE_LIMIT = int(os.getenv("API_RATE_LIMIT", "60"))  # requetes / minute / IP (reduit)
+API_RATE_LIMIT = int(os.getenv("API_RATE_LIMIT", "30"))  # requetes / minute / IP (strict)
 API_RATE_WINDOW_SEC = int(os.getenv("API_RATE_WINDOW_SEC", "60"))
-API_DAILY_LIMIT = int(os.getenv("API_DAILY_LIMIT", "1000"))  # requetes / jour / IP
+API_DAILY_LIMIT = int(os.getenv("API_DAILY_LIMIT", "500"))  # requetes / jour / IP (strict)
 
-# Limites specifiques par type d'endpoint
+# Limites specifiques par type d'endpoint (par minute)
 ENDPOINT_LIMITS = {
-    "/export": 10,        # Exports limites (fichiers lourds)
-    "/geo-points": 20,    # Points geo (requetes couteuses)
-    "/comparaison": 30,   # Comparaisons
+    "/export": 5,         # Exports tres limites (fichiers lourds)
+    "/geo-points": 10,    # Points geo (requetes couteuses)
+    "/comparaison": 15,   # Comparaisons
+    "/arrondissements": 20,  # Donnees principales
+    "/timeline": 15,      # Timeline
+    "/ranking": 15,       # Classements
 }
 
 PUBLIC_PATHS = {
