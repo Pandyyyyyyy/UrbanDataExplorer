@@ -42,6 +42,26 @@ def logements_sociaux_evolution_fallback(arr_num: int, years: List[int] = None) 
     ]
 
 
+def _pollution_local_index(arr: Dict[str, Any], pollution: Dict[str, Any]) -> Dict[str, Any]:
+    """Proxy inter-arrondissements : indice Paris (Citeair) ajusté par densité et transports."""
+    pol = dict(pollution)
+    base = float(pol.get("indice_atmo") or 5)
+    dens = (arr.get("densite_population") or {}).get("densite_km2")
+    trans = (arr.get("transports_publics") or {}).get("total_transports") or 0
+    if dens:
+        dens_norm = max(0.0, min(1.0, (float(dens) - 8000) / 30000))
+        trans_norm = max(0.0, min(1.0, (float(trans) - 26) / 43))
+        factor = 0.88 + (0.6 * dens_norm + 0.4 * trans_norm) * 0.24
+        pol["indice_atmo_local"] = round(min(10.0, max(1.0, base * factor)), 2)
+        pol["indice_atmo_paris"] = base
+        pol["methode_local"] = (
+            "Indice Citeair Paris ajusté par densité et offre de transports (proxy arrondissement)"
+        )
+    else:
+        pol["indice_atmo_local"] = base
+    return pol
+
+
 def enrich_arrondissement(arr: Dict[str, Any], year: Optional[int] = None) -> Dict[str, Any]:
     """Ajoute accessibilité, loyers, surface, évolution logements sociaux."""
     out = dict(arr)
@@ -72,6 +92,9 @@ def enrich_arrondissement(arr: Dict[str, Any], year: Optional[int] = None) -> Di
     if surface:
         access["surface_moyenne_m2"] = round(float(surface), 1)
     out["accessibilite_logement"] = access
+
+    if arr.get("pollution_qualite_air"):
+        out["pollution_qualite_air"] = _pollution_local_index(arr, arr["pollution_qualite_air"])
 
     if arr.get("logements_sociaux_evolution"):
         out["logements_sociaux_evolution"] = arr["logements_sociaux_evolution"]

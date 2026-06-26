@@ -14,6 +14,43 @@ from ude_platform.config import DATA_BACKEND, GOLD_JSON, POSTGRES_READER_URL
 
 logger = logging.getLogger(__name__)
 
+# Champs présents dans Gold JSON mais absents du schéma PostgreSQL actuel
+_JSON_SUPPLEMENT_KEYS = (
+    "vegetation_arbres",
+    "transports_publics",
+    "loyers",
+    "logements_sociaux_evolution",
+    "prix_m2_historique",
+    "evolution_calculee",
+    "tendance_annuelle",
+    "accessibilite_logement",
+)
+
+
+def _merge_json_supplements(arrondissements: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Complète les indicateurs non stockés en SQL (végétation, transports, etc.)."""
+    try:
+        gold_by_num = {
+            a["arrondissement"]: a
+            for a in _load_json().get("arrondissements", [])
+        }
+    except Exception as exc:
+        logger.warning("Fusion Gold JSON impossible : %s", exc)
+        return arrondissements
+
+    for arr in arrondissements:
+        src = gold_by_num.get(arr.get("arrondissement")) or {}
+        for key in _JSON_SUPPLEMENT_KEYS:
+            if src.get(key) is not None:
+                arr[key] = src[key]
+        if src.get("pollution_qualite_air"):
+            pol = dict(arr.get("pollution_qualite_air") or {})
+            pol.update(
+                {k: v for k, v in src["pollution_qualite_air"].items() if v is not None}
+            )
+            arr["pollution_qualite_air"] = pol
+    return arrondissements
+
 
 def _load_json() -> Dict[str, Any]:
     with open(GOLD_JSON, encoding="utf-8") as f:
@@ -93,6 +130,7 @@ def _load_postgres() -> Dict[str, Any]:
 
     cur.close()
     conn.close()
+    arrondissements = _merge_json_supplements(arrondissements)
     return {
         "arrondissements": arrondissements,
         "integration_report": integration_report,

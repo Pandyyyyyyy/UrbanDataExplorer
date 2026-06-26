@@ -42,3 +42,23 @@ def test_logements_sociaux_evolution_fallback_shape():
     assert len(series) == 7
     assert series[0]["annee"] == 2018
     assert series[-1]["logements_sociaux_pct"] == pytest.approx(28.5, rel=0.01)
+
+
+def test_pollution_local_index_varies_by_density():
+    base = {"indice_atmo": 1.2, "qualite": "bonne"}
+    low = enrich_arrondissement({
+        "arrondissement": 16,
+        "pollution_qualite_air": base,
+        "densite_population": {"densite_km2": 9000},
+        "transports_publics": {"total_transports": 30},
+    })
+    high = enrich_arrondissement({
+        "arrondissement": 11,
+        "pollution_qualite_air": base,
+        "densite_population": {"densite_km2": 35000},
+        "transports_publics": {"total_transports": 65},
+    })
+    low_idx = low["pollution_qualite_air"]["indice_atmo_local"]
+    high_idx = high["pollution_qualite_air"]["indice_atmo_local"]
+    assert low_idx < high_idx
+    assert low["pollution_qualite_air"]["indice_atmo_paris"] == 1.2

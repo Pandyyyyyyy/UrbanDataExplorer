@@ -24,6 +24,9 @@ def test_arrondissements_list(client):
     data = response.json()
     assert "arrondissements" in data
     assert len(data["arrondissements"]) == 20
+    first = data["arrondissements"][0]
+    assert (first.get("vegetation_arbres") or {}).get("nombre_arbres", 0) > 0
+    assert (first.get("transports_publics") or {}).get("total_transports", 0) > 0
 
 
 def test_mongo_geo_points_bbox_validation(client):

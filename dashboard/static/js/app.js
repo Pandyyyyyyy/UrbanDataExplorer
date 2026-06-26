@@ -135,6 +135,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initializeCharts();
     setupEventListeners();
     updateMapLegend();
+    updateIndicatorFormulaPanel();
     await updateMap();
     updateGlobalStats();
 });
@@ -164,6 +165,8 @@ async function loadData() {
         console.log('Données chargées:', allData);
         updateLogementsSociauxChart();
         updateAccessibiliteChart();
+        updateIndicatorFormulaPanel();
+        updateUniformDataNotice();
     } catch (error) {
         console.error('Erreur:', error);
         showError('Impossible de charger les données. Vérifiez que l\'API est démarrée.');
@@ -713,6 +716,8 @@ async function updateMap() {
         if (selectedIndicator === 'vegetation') defaultValue = 1000;
         if (selectedIndicator === 'transports') defaultValue = 20;
         if (selectedIndicator === 'delits') defaultValue = 50;
+        if (selectedIndicator === 'densite') defaultValue = 20000;
+        if (selectedIndicator === 'tension') defaultValue = 45;
         
         let value = defaultValue;
         if (arrData) {
@@ -725,11 +730,11 @@ async function updateMap() {
         return {
             ...polygon,
             properties: {
-                ...polygon.properties,
+                arrondissement: arrNum,
+                nom: polygon.properties.nom || arrondissementLabel(arrNum),
                 value: value,
                 color: color,
                 indicator: selectedIndicator,
-                ...(arrData || {})
             }
         };
     }).filter(f => f !== null);
@@ -742,7 +747,13 @@ async function updateMap() {
     };
 
     if (map.getSource('arrondissements')) {
-        map.getSource('arrondissements').setData(geojson);
+        try {
+            map.getSource('arrondissements').setData(geojson);
+        } catch (err) {
+            console.error('Erreur setData GeoJSON:', err);
+            showError('Erreur affichage carte — recharger la page (Ctrl+Shift+R).');
+            return;
+        }
         if (map.getLayer('arrondissements-fill')) {
             const colorExpression = getColorExpressionForIndicator(selectedIndicator);
             map.setPaintProperty('arrondissements-fill', 'fill-color', colorExpression);
@@ -1117,9 +1128,36 @@ function removeTransportMarkers() {
 }
 
 const INDICATOR_ORDER = [
-    'prix', 'logements', 'loyers', 'accessibilite', 'pollution',
-    'delits', 'revenus', 'vegetation', 'transports',
+    'prix', 'logements', 'loyers', 'accessibilite', 'tension', 'pollution',
+    'delits', 'revenus', 'densite', 'vegetation', 'transports',
 ];
+
+const INDICATOR_FORMULAS = {
+    tension: {
+        title: 'Tension locative',
+        formula: '(loyer_m² × 50 × 12) / revenu_médian × 100',
+        unit: '% du revenu annuel',
+        note: 'Part du revenu médian absorbée par un logement de 50 m² en location.',
+    },
+    accessibilite: {
+        title: 'Accessibilité à l\'achat',
+        formula: '(prix_m² × 50) / (revenu_médian / 12)',
+        unit: 'mois de revenu',
+        note: 'Mois de revenu médian nécessaires pour financer 50 m² à l\'achat.',
+    },
+    densite: {
+        title: 'Densité de population',
+        formula: 'population / superficie_km²',
+        unit: 'hab./km²',
+        note: 'Population INSEE (jeu délinquance data.gouv) divisée par la superficie de l\'arrondissement.',
+    },
+    pollution: {
+        title: 'Qualité de l\'air (proxy local)',
+        formula: 'indice_Paris × f(densité, transports)',
+        unit: 'indice 1–10',
+        note: 'Indice Citeair Paris (identique pour tous) ajusté par densité et transports pour varier sur la carte.',
+    },
+};
 
 function selectIndicator(indicator) {
     selectedIndicator = indicator;
@@ -1128,8 +1166,10 @@ function selectIndicator(indicator) {
         i.classList.toggle('active', active);
         i.setAttribute('aria-pressed', String(active));
     });
+    updateIndicatorFormulaPanel();
     updateMapLegend();
     updateMap();
+    updateUniformDataNotice();
     if (selectedIndicator === 'vegetation') {
         setTimeout(() => updateTreeMarkers(), 200);
     } else {
@@ -1156,6 +1196,10 @@ function getColorExpressionForIndicator(indicator) {
             return seqGteExpr(22, 28, 32, 36);
         case 'accessibilite':
             return seqGteExpr(200, 300, 350, 400);
+        case 'tension':
+            return seqGteExpr(40, 45, 50, 55);
+        case 'densite':
+            return seqGteExpr(12000, 18000, 25000, 32000);
         case 'revenus':
             return seqGteExpr(25000, 30000, 35000, 40000);
         case 'transports':
@@ -1165,9 +1209,10 @@ function getColorExpressionForIndicator(indicator) {
         case 'pollution':
             return [
                 'case',
-                ['<=', ['get', 'value'], 3], AIR_GOOD_TO_BAD[0],
-                ['<=', ['get', 'value'], 5], AIR_GOOD_TO_BAD[2],
-                ['<=', ['get', 'value'], 7], AIR_GOOD_TO_BAD[3],
+                ['<=', ['get', 'value'], 1.05], AIR_GOOD_TO_BAD[0],
+                ['<=', ['get', 'value'], 1.15], AIR_GOOD_TO_BAD[1],
+                ['<=', ['get', 'value'], 1.25], AIR_GOOD_TO_BAD[2],
+                ['<=', ['get', 'value'], 1.35], AIR_GOOD_TO_BAD[3],
                 AIR_GOOD_TO_BAD[4],
             ];
         case 'vegetation':
@@ -1209,6 +1254,10 @@ function getColorForIndicator(indicator, value) {
             return baseColorAt(value, 22, 28, 32, 36, true);
         case 'accessibilite':
             return baseColorAt(value, 200, 300, 350, 400, true);
+        case 'tension':
+            return baseColorAt(value, 40, 45, 50, 55, true);
+        case 'densite':
+            return baseColorAt(value, 12000, 18000, 25000, 32000, true);
         case 'revenus':
             return baseColorAt(value, 25000, 30000, 35000, 40000, true);
         case 'transports':
@@ -1216,9 +1265,10 @@ function getColorForIndicator(indicator, value) {
         case 'delits':
             return baseColorAt(value, 40, 80, 120, 200, true);
         case 'pollution':
-            if (value <= 3) return AIR_GOOD_TO_BAD[0];
-            if (value <= 5) return AIR_GOOD_TO_BAD[2];
-            if (value <= 7) return AIR_GOOD_TO_BAD[3];
+            if (value <= 1.05) return AIR_GOOD_TO_BAD[0];
+            if (value <= 1.15) return AIR_GOOD_TO_BAD[1];
+            if (value <= 1.25) return AIR_GOOD_TO_BAD[2];
+            if (value <= 1.35) return AIR_GOOD_TO_BAD[3];
             return AIR_GOOD_TO_BAD[4];
         case 'vegetation':
             if (value < 200) return VEG_NONE_TO_DENSE[0];
@@ -1244,12 +1294,17 @@ function getIndicatorValue(arr, indicator, year) {
         case 'accessibilite':
             return arr.accessibilite_logement?.mois_revenu_pour_50m2_achat
                 || arr.accessibilite_logement?.mois_revenu_pour_50m2_location || 0;
+        case 'tension':
+            return arr.accessibilite_logement?.part_revenu_loyer_50m2_pct || 0;
         case 'pollution':
-            return arr.pollution_qualite_air?.indice_atmo || 0;
+            return arr.pollution_qualite_air?.indice_atmo_local
+                || arr.pollution_qualite_air?.indice_atmo || 0;
         case 'delits':
             return arr.delits_enregistres?.delits_par_1000_habitants || 0;
         case 'revenus':
             return arr.revenus_moyens?.revenu_median_menage || 0;
+        case 'densite':
+            return arr.densite_population?.densite_km2 || 0;
         case 'vegetation':
             return arr.vegetation_arbres?.nombre_arbres || 0;
         case 'transports':
@@ -1401,6 +1456,10 @@ function updateSelectedInfo(arr) {
             <div class="info-item">
                 <span class="info-label">Revenu médian</span>
                 <span class="info-value">${arr.revenus_moyens?.revenu_median_menage?.toLocaleString('fr-FR') || 'N/A'}€</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Densité</span>
+                <span class="info-value">${arr.densite_population?.densite_km2 != null ? arr.densite_population.densite_km2.toLocaleString('fr-FR') + ' hab./km²' : 'N/A'}</span>
             </div>
             ${formatAccessibiliteBlock(arr)}
             ${getTransportsInfoHTML(arr)}
@@ -2118,9 +2177,11 @@ function updateMapLegend() {
         logements: { title: 'Logements sociaux (%)', labels: ['10', '28'] },
         loyers: { title: 'Loyer estimé €/m²/mois', labels: ['22', '38'] },
         accessibilite: { title: 'Mois revenu pour 50 m²', labels: ['< 200', '> 400'] },
-        pollution: { title: 'Qualité air', labels: ['Bon', 'Mauvais'] },
+        tension: { title: 'Tension locative (%)', labels: ['40 %', '55 %'] },
+        pollution: { title: 'Qualité air (proxy)', labels: ['Meilleure', 'Moins bonne'] },
         delits: { title: 'Délinquance', labels: ['Faible', 'Élevée'] },
         revenus: { title: 'Revenu médian (€)', labels: ['25k', '40k'] },
+        densite: { title: 'Densité (hab./km²)', labels: ['12k', '32k'] },
         vegetation: { title: 'Végétation', labels: ['Peu / aucun', 'Dense'] },
         transports: { title: 'Points de transport', labels: ['5', '50'] }
     };
@@ -2131,6 +2192,8 @@ function updateMapLegend() {
         logements: baseGrad,
         loyers: baseGrad,
         accessibilite: baseGrad,
+        tension: baseGrad,
+        densite: baseGrad,
         delits: baseGrad,
         revenus: baseGrad,
         transports: baseGrad,
@@ -2149,7 +2212,47 @@ function updateMapLegend() {
             <span>${cfg.labels[1]}</span>
         </div>
         <p class="legend-a11y-hint">Couleurs + traits de contour (navigation clavier : flèches)</p>
+        <p id="uniform-data-notice" class="uniform-data-notice hidden" role="status"></p>
     `;
+    updateUniformDataNotice();
+}
+
+function updateIndicatorFormulaPanel() {
+    const panel = document.getElementById('indicator-formula');
+    if (!panel) return;
+    const cfg = INDICATOR_FORMULAS[selectedIndicator];
+    if (!cfg) {
+        panel.classList.add('hidden');
+        panel.innerHTML = '';
+        return;
+    }
+    panel.classList.remove('hidden');
+    panel.innerHTML = `
+        <div class="formula-title">${cfg.title}</div>
+        <code class="formula-expr">${cfg.formula}</code>
+        <div class="formula-unit">${cfg.unit}</div>
+        <p class="formula-note">${cfg.note}</p>
+    `;
+}
+
+function updateUniformDataNotice() {
+    const el = document.getElementById('uniform-data-notice');
+    if (!el || !allData?.length) return;
+    const values = allData
+        .map((a) => getIndicatorValue(a, selectedIndicator, selectedYear))
+        .filter((v) => v != null && !Number.isNaN(v));
+    if (values.length < 2) {
+        el.classList.add('hidden');
+        return;
+    }
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    if (Math.abs(max - min) < 0.01) {
+        el.textContent = 'Valeurs identiques sur tous les arrondissements — la carte ne peut pas varier pour cet indicateur.';
+        el.classList.remove('hidden');
+    } else {
+        el.classList.add('hidden');
+    }
 }
 
 // Helpers
@@ -2159,9 +2262,11 @@ function getIndicatorName(indicator) {
         'logements': 'Logements sociaux',
         'loyers': 'Loyer estimé/m²',
         'accessibilite': 'Accessibilité (mois revenu)',
+        'tension': 'Tension locative',
         'pollution': 'Qualité air',
         'delits': 'Délits',
         'revenus': 'Revenus',
+        'densite': 'Densité',
         'vegetation': 'Végétation',
         'transports': 'Transports'
     };
@@ -2178,12 +2283,16 @@ function getIndicatorLabel(indicator, value) {
             return value.toFixed(1) + ' €/m²/mois';
         case 'accessibilite':
             return value.toFixed(0) + ' mois de revenu';
+        case 'tension':
+            return value.toFixed(1) + ' % du revenu';
         case 'pollution':
-            return value.toFixed(1);
+            return value.toFixed(2) + ' (proxy)';
         case 'delits':
             return value.toFixed(1) + ' / 1000 hab.';
         case 'revenus':
             return value.toLocaleString('fr-FR') + '€';
+        case 'densite':
+            return value.toLocaleString('fr-FR') + ' hab./km²';
         case 'vegetation':
             return value.toLocaleString('fr-FR') + ' arbres';
         case 'transports':

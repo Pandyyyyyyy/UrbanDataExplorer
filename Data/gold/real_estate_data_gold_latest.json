@@ -1,6 +1,6 @@
 {
-  "timestamp": "2026-06-24T10:01:00.315051",
-  "generated_at": "2026-06-24T10:05:23.116081",
+  "timestamp": "2026-06-26T09:24:39.329999",
+  "generated_at": "2026-06-26T09:24:57.258227",
   "integration_report": {
     "dvf": {
       "status": "ok",
@@ -79,9 +79,29 @@
         "failed": 0
       },
       "max_per_arr": 5
+    },
+    "pipeline_finalize": {
+      "steps": {
+        "parquet_partitioned": {
+          "ok": true
+        },
+        "postgres": {
+          "ok": true
+        },
+        "mongo_geo_points": {
+          "ok": true
+        },
+        "minio_lake": {
+          "ok": false,
+          "files": 0
+        }
+      },
+      "started_at": 1782458697.5421512,
+      "finished_at": 1782458739.3802712,
+      "total_sec": 41.84
     }
   },
-  "sources_updated_at": "2026-06-24T10:01:48.554717",
+  "sources_updated_at": "2026-06-26T09:24:56.698581",
   "summary": {
     "nb_arrondissements": 20,
     "periode_min": "2022-01-01",
@@ -370,7 +390,10 @@
         "pm10_moyen": 15.38,
         "no2_moyen": 25.55,
         "date_mesure": "2020-12-31",
-        "qualite": "bonne"
+        "qualite": "bonne",
+        "indice_atmo_local": 1.13,
+        "indice_atmo_paris": 1.2,
+        "methode_local": "Indice Citeair Paris ajusté par densité et offre de transports (proxy arrondissement)"
       },
       "delits_enregistres": {
         "total_delits": 10098,
@@ -393,20 +416,20 @@
         "annee": 2025
       },
       "vegetation_arbres": {
-        "nombre_arbres": 1086,
-        "surface_espaces_verts_ha": 45.87,
-        "pourcentage_vegetation": 8.5,
-        "arbres_par_km2": 1331,
+        "nombre_arbres": 2250,
+        "surface_espaces_verts_ha": 40.46,
+        "pourcentage_vegetation": 14.33,
+        "arbres_par_km2": 300,
         "parcs_et_jardins": 12,
         "annee": 2024
       },
       "transports_publics": {
         "stations_metro": 8,
-        "stations_rer": 4,
-        "arrets_bus": 31,
-        "lignes_metro": 5,
-        "lignes_bus": 11,
-        "total_transports": 43,
+        "stations_rer": 0,
+        "arrets_bus": 46,
+        "lignes_metro": 1,
+        "lignes_bus": 15,
+        "total_transports": 54,
         "annee": 2024
       },
       "geocoding": {
@@ -423,28 +446,28 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "evolution": {
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "delits_enregistres": {
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:38.509535",
+          "fetched_at": "2026-06-26T09:24:45.444327",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "pollution_qualite_air": {
           "provider": "OpenData Paris",
           "dataset": "qualite-de-l-air-indice-citeair-jusqu-a-2020",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:39.676824",
+          "fetched_at": "2026-06-26T09:24:46.074740",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/qualite-de-l-air-indice-citeair-jusqu-a-2020/records",
           "note": "Indice dérivé des statistiques Citeair (échelle Paris, appliqué à tous les arrondissements)."
         },
@@ -452,14 +475,14 @@
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance (insee_pop)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.462787",
+          "fetched_at": "2026-06-26T09:24:47.824702",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "loyers": {
           "provider": "opendata.paris.fr",
           "dataset": "logement-encadrement-des-loyers",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.492064",
+          "fetched_at": "2026-06-26T09:24:47.845530",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logement-encadrement-des-loyers/exports/csv",
           "note": "Médiane des loyers de référence €/m²/mois par arrondissement."
         },
@@ -467,7 +490,7 @@
           "provider": "Paris / Caisse des Dépôts",
           "dataset": "logements-sociaux-dans-les-communes + RPLS arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.329380",
+          "fetched_at": "2026-06-26T09:24:48.580408",
           "url": "https://opendata.caissedesdepots.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-dans-les-communes/exports/csv",
           "note": "Taux 2024 par arrondissement ; évolution calibrée sur livraisons Paris open data."
         },
@@ -475,7 +498,7 @@
           "provider": "opendata.paris.fr",
           "dataset": "logements-sociaux-finances-a-paris",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.298205",
+          "fetched_at": "2026-06-26T09:24:48.477685",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-finances-a-paris/exports/csv",
           "note": "Livraisons annuelles par arrondissement pour la série 2018–2024."
         },
@@ -483,7 +506,7 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.372753",
+          "fetched_at": "2026-06-26T09:24:48.605413",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz",
           "note": "Typologie estimée à partir des transactions DVF (appartements, pièces)."
         },
@@ -491,7 +514,7 @@
           "provider": "INSEE / data.gouv",
           "dataset": "Revenu des français à la commune (Filosofi 2021)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.388021",
+          "fetched_at": "2026-06-26T09:24:50.857293",
           "url": "https://www.data.gouv.fr/api/1/datasets/revenu-des-francais-a-la-commune/",
           "note": "[DISP] Médiane (€) — revenu disponible par unité de consommation."
         },
@@ -499,13 +522,13 @@
           "provider": "data.gouv + BAN + Nominatim",
           "dataset": "geocoding-arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.906654",
+          "fetched_at": "2026-06-26T09:24:51.981181",
           "url": "https://api-adresse.data.gouv.fr/search/",
           "note": "Centroïde médian ; BAN prioritaire, Nominatim en secours."
         }
       },
       "metadata": {
-        "cleaned_at": "2026-06-24T10:05:22.869508",
+        "cleaned_at": "2026-06-26T09:24:56.848423",
         "nb_prix_records": 36,
         "nb_evolution_records": 3,
         "data_quality": {
@@ -516,7 +539,7 @@
           },
           "missing_fields": [],
           "imputed_fields": [],
-          "processed_at": "2026-06-24T10:05:22.869508"
+          "processed_at": "2026-06-26T09:24:56.848423"
         }
       },
       "accessibilite_logement": {
@@ -809,7 +832,10 @@
         "pm10_moyen": 15.38,
         "no2_moyen": 25.55,
         "date_mesure": "2020-12-31",
-        "qualite": "bonne"
+        "qualite": "bonne",
+        "indice_atmo_local": 1.15,
+        "indice_atmo_paris": 1.2,
+        "methode_local": "Indice Citeair Paris ajusté par densité et offre de transports (proxy arrondissement)"
       },
       "delits_enregistres": {
         "total_delits": 4798,
@@ -832,20 +858,20 @@
         "annee": 2025
       },
       "vegetation_arbres": {
-        "nombre_arbres": 3924,
-        "surface_espaces_verts_ha": 39.0,
-        "pourcentage_vegetation": 9.69,
-        "arbres_par_km2": 741,
-        "parcs_et_jardins": 2,
+        "nombre_arbres": 2103,
+        "surface_espaces_verts_ha": 33.3,
+        "pourcentage_vegetation": 19.89,
+        "arbres_par_km2": 1553,
+        "parcs_et_jardins": 6,
         "annee": 2024
       },
       "transports_publics": {
-        "stations_metro": 6,
-        "stations_rer": 3,
-        "arrets_bus": 47,
-        "lignes_metro": 5,
-        "lignes_bus": 15,
-        "total_transports": 56,
+        "stations_metro": 12,
+        "stations_rer": 1,
+        "arrets_bus": 22,
+        "lignes_metro": 2,
+        "lignes_bus": 7,
+        "total_transports": 35,
         "annee": 2024
       },
       "geocoding": {
@@ -862,28 +888,28 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "evolution": {
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "delits_enregistres": {
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:38.509535",
+          "fetched_at": "2026-06-26T09:24:45.444327",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "pollution_qualite_air": {
           "provider": "OpenData Paris",
           "dataset": "qualite-de-l-air-indice-citeair-jusqu-a-2020",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:39.676824",
+          "fetched_at": "2026-06-26T09:24:46.074740",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/qualite-de-l-air-indice-citeair-jusqu-a-2020/records",
           "note": "Indice dérivé des statistiques Citeair (échelle Paris, appliqué à tous les arrondissements)."
         },
@@ -891,14 +917,14 @@
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance (insee_pop)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.462787",
+          "fetched_at": "2026-06-26T09:24:47.824702",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "loyers": {
           "provider": "opendata.paris.fr",
           "dataset": "logement-encadrement-des-loyers",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.492064",
+          "fetched_at": "2026-06-26T09:24:47.845530",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logement-encadrement-des-loyers/exports/csv",
           "note": "Médiane des loyers de référence €/m²/mois par arrondissement."
         },
@@ -906,7 +932,7 @@
           "provider": "Paris / Caisse des Dépôts",
           "dataset": "logements-sociaux-dans-les-communes + RPLS arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.329380",
+          "fetched_at": "2026-06-26T09:24:48.580408",
           "url": "https://opendata.caissedesdepots.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-dans-les-communes/exports/csv",
           "note": "Taux 2024 par arrondissement ; évolution calibrée sur livraisons Paris open data."
         },
@@ -914,7 +940,7 @@
           "provider": "opendata.paris.fr",
           "dataset": "logements-sociaux-finances-a-paris",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.298205",
+          "fetched_at": "2026-06-26T09:24:48.477685",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-finances-a-paris/exports/csv",
           "note": "Livraisons annuelles par arrondissement pour la série 2018–2024."
         },
@@ -922,7 +948,7 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.372753",
+          "fetched_at": "2026-06-26T09:24:48.605413",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz",
           "note": "Typologie estimée à partir des transactions DVF (appartements, pièces)."
         },
@@ -930,7 +956,7 @@
           "provider": "INSEE / data.gouv",
           "dataset": "Revenu des français à la commune (Filosofi 2021)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.388021",
+          "fetched_at": "2026-06-26T09:24:50.857293",
           "url": "https://www.data.gouv.fr/api/1/datasets/revenu-des-francais-a-la-commune/",
           "note": "[DISP] Médiane (€) — revenu disponible par unité de consommation."
         },
@@ -938,13 +964,13 @@
           "provider": "data.gouv + BAN + Nominatim",
           "dataset": "geocoding-arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.906654",
+          "fetched_at": "2026-06-26T09:24:51.981181",
           "url": "https://api-adresse.data.gouv.fr/search/",
           "note": "Centroïde médian ; BAN prioritaire, Nominatim en secours."
         }
       },
       "metadata": {
-        "cleaned_at": "2026-06-24T10:05:22.883061",
+        "cleaned_at": "2026-06-26T09:24:56.866777",
         "nb_prix_records": 36,
         "nb_evolution_records": 3,
         "data_quality": {
@@ -955,7 +981,7 @@
           },
           "missing_fields": [],
           "imputed_fields": [],
-          "processed_at": "2026-06-24T10:05:22.883061"
+          "processed_at": "2026-06-26T09:24:56.866777"
         }
       },
       "accessibilite_logement": {
@@ -1248,7 +1274,10 @@
         "pm10_moyen": 15.38,
         "no2_moyen": 25.55,
         "date_mesure": "2020-12-31",
-        "qualite": "bonne"
+        "qualite": "bonne",
+        "indice_atmo_local": 1.17,
+        "indice_atmo_paris": 1.2,
+        "methode_local": "Indice Citeair Paris ajusté par densité et offre de transports (proxy arrondissement)"
       },
       "delits_enregistres": {
         "total_delits": 4544,
@@ -1271,20 +1300,20 @@
         "annee": 2025
       },
       "vegetation_arbres": {
-        "nombre_arbres": 4988,
-        "surface_espaces_verts_ha": 5.04,
-        "pourcentage_vegetation": 7.74,
-        "arbres_par_km2": 1776,
-        "parcs_et_jardins": 10,
+        "nombre_arbres": 1641,
+        "surface_espaces_verts_ha": 49.75,
+        "pourcentage_vegetation": 18.44,
+        "arbres_par_km2": 1019,
+        "parcs_et_jardins": 3,
         "annee": 2024
       },
       "transports_publics": {
-        "stations_metro": 2,
-        "stations_rer": 4,
-        "arrets_bus": 46,
-        "lignes_metro": 3,
-        "lignes_bus": 18,
-        "total_transports": 52,
+        "stations_metro": 12,
+        "stations_rer": 0,
+        "arrets_bus": 14,
+        "lignes_metro": 2,
+        "lignes_bus": 10,
+        "total_transports": 26,
         "annee": 2024
       },
       "geocoding": {
@@ -1302,28 +1331,28 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "evolution": {
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "delits_enregistres": {
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:38.509535",
+          "fetched_at": "2026-06-26T09:24:45.444327",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "pollution_qualite_air": {
           "provider": "OpenData Paris",
           "dataset": "qualite-de-l-air-indice-citeair-jusqu-a-2020",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:39.676824",
+          "fetched_at": "2026-06-26T09:24:46.074740",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/qualite-de-l-air-indice-citeair-jusqu-a-2020/records",
           "note": "Indice dérivé des statistiques Citeair (échelle Paris, appliqué à tous les arrondissements)."
         },
@@ -1331,14 +1360,14 @@
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance (insee_pop)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.462787",
+          "fetched_at": "2026-06-26T09:24:47.824702",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "loyers": {
           "provider": "opendata.paris.fr",
           "dataset": "logement-encadrement-des-loyers",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.492064",
+          "fetched_at": "2026-06-26T09:24:47.845530",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logement-encadrement-des-loyers/exports/csv",
           "note": "Médiane des loyers de référence €/m²/mois par arrondissement."
         },
@@ -1346,7 +1375,7 @@
           "provider": "Paris / Caisse des Dépôts",
           "dataset": "logements-sociaux-dans-les-communes + RPLS arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.329380",
+          "fetched_at": "2026-06-26T09:24:48.580408",
           "url": "https://opendata.caissedesdepots.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-dans-les-communes/exports/csv",
           "note": "Taux 2024 par arrondissement ; évolution calibrée sur livraisons Paris open data."
         },
@@ -1354,7 +1383,7 @@
           "provider": "opendata.paris.fr",
           "dataset": "logements-sociaux-finances-a-paris",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.298205",
+          "fetched_at": "2026-06-26T09:24:48.477685",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-finances-a-paris/exports/csv",
           "note": "Livraisons annuelles par arrondissement pour la série 2018–2024."
         },
@@ -1362,7 +1391,7 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.372753",
+          "fetched_at": "2026-06-26T09:24:48.605413",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz",
           "note": "Typologie estimée à partir des transactions DVF (appartements, pièces)."
         },
@@ -1370,7 +1399,7 @@
           "provider": "INSEE / data.gouv",
           "dataset": "Revenu des français à la commune (Filosofi 2021)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.388021",
+          "fetched_at": "2026-06-26T09:24:50.857293",
           "url": "https://www.data.gouv.fr/api/1/datasets/revenu-des-francais-a-la-commune/",
           "note": "[DISP] Médiane (€) — revenu disponible par unité de consommation."
         },
@@ -1378,13 +1407,13 @@
           "provider": "data.gouv + BAN + Nominatim",
           "dataset": "geocoding-arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.906654",
+          "fetched_at": "2026-06-26T09:24:51.981181",
           "url": "https://api-adresse.data.gouv.fr/search/",
           "note": "Centroïde médian ; BAN prioritaire, Nominatim en secours."
         }
       },
       "metadata": {
-        "cleaned_at": "2026-06-24T10:05:22.908685",
+        "cleaned_at": "2026-06-26T09:24:56.883225",
         "nb_prix_records": 36,
         "nb_evolution_records": 3,
         "data_quality": {
@@ -1395,7 +1424,7 @@
           },
           "missing_fields": [],
           "imputed_fields": [],
-          "processed_at": "2026-06-24T10:05:22.908685"
+          "processed_at": "2026-06-26T09:24:56.883225"
         }
       },
       "accessibilite_logement": {
@@ -1688,7 +1717,10 @@
         "pm10_moyen": 15.38,
         "no2_moyen": 25.55,
         "date_mesure": "2020-12-31",
-        "qualite": "bonne"
+        "qualite": "bonne",
+        "indice_atmo_local": 1.11,
+        "indice_atmo_paris": 1.2,
+        "methode_local": "Indice Citeair Paris ajusté par densité et offre de transports (proxy arrondissement)"
       },
       "delits_enregistres": {
         "total_delits": 5450,
@@ -1711,20 +1743,20 @@
         "annee": 2025
       },
       "vegetation_arbres": {
-        "nombre_arbres": 3215,
-        "surface_espaces_verts_ha": 46.79,
-        "pourcentage_vegetation": 13.34,
-        "arbres_par_km2": 802,
-        "parcs_et_jardins": 7,
+        "nombre_arbres": 2480,
+        "surface_espaces_verts_ha": 19.26,
+        "pourcentage_vegetation": 18.25,
+        "arbres_par_km2": 978,
+        "parcs_et_jardins": 4,
         "annee": 2024
       },
       "transports_publics": {
-        "stations_metro": 14,
-        "stations_rer": 5,
-        "arrets_bus": 20,
-        "lignes_metro": 1,
-        "lignes_bus": 20,
-        "total_transports": 39,
+        "stations_metro": 2,
+        "stations_rer": 0,
+        "arrets_bus": 18,
+        "lignes_metro": 5,
+        "lignes_bus": 7,
+        "total_transports": 20,
         "annee": 2024
       },
       "geocoding": {
@@ -1741,28 +1773,28 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "evolution": {
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "delits_enregistres": {
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:38.509535",
+          "fetched_at": "2026-06-26T09:24:45.444327",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "pollution_qualite_air": {
           "provider": "OpenData Paris",
           "dataset": "qualite-de-l-air-indice-citeair-jusqu-a-2020",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:39.676824",
+          "fetched_at": "2026-06-26T09:24:46.074740",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/qualite-de-l-air-indice-citeair-jusqu-a-2020/records",
           "note": "Indice dérivé des statistiques Citeair (échelle Paris, appliqué à tous les arrondissements)."
         },
@@ -1770,14 +1802,14 @@
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance (insee_pop)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.462787",
+          "fetched_at": "2026-06-26T09:24:47.824702",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "loyers": {
           "provider": "opendata.paris.fr",
           "dataset": "logement-encadrement-des-loyers",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.492064",
+          "fetched_at": "2026-06-26T09:24:47.845530",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logement-encadrement-des-loyers/exports/csv",
           "note": "Médiane des loyers de référence €/m²/mois par arrondissement."
         },
@@ -1785,7 +1817,7 @@
           "provider": "Paris / Caisse des Dépôts",
           "dataset": "logements-sociaux-dans-les-communes + RPLS arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.329380",
+          "fetched_at": "2026-06-26T09:24:48.580408",
           "url": "https://opendata.caissedesdepots.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-dans-les-communes/exports/csv",
           "note": "Taux 2024 par arrondissement ; évolution calibrée sur livraisons Paris open data."
         },
@@ -1793,7 +1825,7 @@
           "provider": "opendata.paris.fr",
           "dataset": "logements-sociaux-finances-a-paris",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.298205",
+          "fetched_at": "2026-06-26T09:24:48.477685",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-finances-a-paris/exports/csv",
           "note": "Livraisons annuelles par arrondissement pour la série 2018–2024."
         },
@@ -1801,7 +1833,7 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.372753",
+          "fetched_at": "2026-06-26T09:24:48.605413",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz",
           "note": "Typologie estimée à partir des transactions DVF (appartements, pièces)."
         },
@@ -1809,7 +1841,7 @@
           "provider": "INSEE / data.gouv",
           "dataset": "Revenu des français à la commune (Filosofi 2021)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.388021",
+          "fetched_at": "2026-06-26T09:24:50.857293",
           "url": "https://www.data.gouv.fr/api/1/datasets/revenu-des-francais-a-la-commune/",
           "note": "[DISP] Médiane (€) — revenu disponible par unité de consommation."
         },
@@ -1817,13 +1849,13 @@
           "provider": "data.gouv + BAN + Nominatim",
           "dataset": "geocoding-arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.906654",
+          "fetched_at": "2026-06-26T09:24:51.981181",
           "url": "https://api-adresse.data.gouv.fr/search/",
           "note": "Centroïde médian ; BAN prioritaire, Nominatim en secours."
         }
       },
       "metadata": {
-        "cleaned_at": "2026-06-24T10:05:22.920495",
+        "cleaned_at": "2026-06-26T09:24:56.906147",
         "nb_prix_records": 36,
         "nb_evolution_records": 3,
         "data_quality": {
@@ -1834,7 +1866,7 @@
           },
           "missing_fields": [],
           "imputed_fields": [],
-          "processed_at": "2026-06-24T10:05:22.920495"
+          "processed_at": "2026-06-26T09:24:56.906147"
         }
       },
       "accessibilite_logement": {
@@ -2127,7 +2159,10 @@
         "pm10_moyen": 15.38,
         "no2_moyen": 25.55,
         "date_mesure": "2020-12-31",
-        "qualite": "bonne"
+        "qualite": "bonne",
+        "indice_atmo_local": 1.2,
+        "indice_atmo_paris": 1.2,
+        "methode_local": "Indice Citeair Paris ajusté par densité et offre de transports (proxy arrondissement)"
       },
       "delits_enregistres": {
         "total_delits": 5813,
@@ -2150,20 +2185,20 @@
         "annee": 2025
       },
       "vegetation_arbres": {
-        "nombre_arbres": 2245,
-        "surface_espaces_verts_ha": 35.72,
-        "pourcentage_vegetation": 24.75,
-        "arbres_par_km2": 1120,
-        "parcs_et_jardins": 4,
+        "nombre_arbres": 590,
+        "surface_espaces_verts_ha": 44.66,
+        "pourcentage_vegetation": 6.4,
+        "arbres_par_km2": 1293,
+        "parcs_et_jardins": 13,
         "annee": 2024
       },
       "transports_publics": {
         "stations_metro": 7,
-        "stations_rer": 0,
-        "arrets_bus": 31,
-        "lignes_metro": 5,
-        "lignes_bus": 5,
-        "total_transports": 38,
+        "stations_rer": 2,
+        "arrets_bus": 40,
+        "lignes_metro": 2,
+        "lignes_bus": 18,
+        "total_transports": 49,
         "annee": 2024
       },
       "geocoding": {
@@ -2180,28 +2215,28 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "evolution": {
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "delits_enregistres": {
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:38.509535",
+          "fetched_at": "2026-06-26T09:24:45.444327",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "pollution_qualite_air": {
           "provider": "OpenData Paris",
           "dataset": "qualite-de-l-air-indice-citeair-jusqu-a-2020",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:39.676824",
+          "fetched_at": "2026-06-26T09:24:46.074740",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/qualite-de-l-air-indice-citeair-jusqu-a-2020/records",
           "note": "Indice dérivé des statistiques Citeair (échelle Paris, appliqué à tous les arrondissements)."
         },
@@ -2209,14 +2244,14 @@
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance (insee_pop)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.462787",
+          "fetched_at": "2026-06-26T09:24:47.824702",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "loyers": {
           "provider": "opendata.paris.fr",
           "dataset": "logement-encadrement-des-loyers",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.492064",
+          "fetched_at": "2026-06-26T09:24:47.845530",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logement-encadrement-des-loyers/exports/csv",
           "note": "Médiane des loyers de référence €/m²/mois par arrondissement."
         },
@@ -2224,7 +2259,7 @@
           "provider": "Paris / Caisse des Dépôts",
           "dataset": "logements-sociaux-dans-les-communes + RPLS arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.329380",
+          "fetched_at": "2026-06-26T09:24:48.580408",
           "url": "https://opendata.caissedesdepots.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-dans-les-communes/exports/csv",
           "note": "Taux 2024 par arrondissement ; évolution calibrée sur livraisons Paris open data."
         },
@@ -2232,7 +2267,7 @@
           "provider": "opendata.paris.fr",
           "dataset": "logements-sociaux-finances-a-paris",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.298205",
+          "fetched_at": "2026-06-26T09:24:48.477685",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-finances-a-paris/exports/csv",
           "note": "Livraisons annuelles par arrondissement pour la série 2018–2024."
         },
@@ -2240,7 +2275,7 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.372753",
+          "fetched_at": "2026-06-26T09:24:48.605413",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz",
           "note": "Typologie estimée à partir des transactions DVF (appartements, pièces)."
         },
@@ -2248,7 +2283,7 @@
           "provider": "INSEE / data.gouv",
           "dataset": "Revenu des français à la commune (Filosofi 2021)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.388021",
+          "fetched_at": "2026-06-26T09:24:50.857293",
           "url": "https://www.data.gouv.fr/api/1/datasets/revenu-des-francais-a-la-commune/",
           "note": "[DISP] Médiane (€) — revenu disponible par unité de consommation."
         },
@@ -2256,13 +2291,13 @@
           "provider": "data.gouv + BAN + Nominatim",
           "dataset": "geocoding-arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.906654",
+          "fetched_at": "2026-06-26T09:24:51.981181",
           "url": "https://api-adresse.data.gouv.fr/search/",
           "note": "Centroïde médian ; BAN prioritaire, Nominatim en secours."
         }
       },
       "metadata": {
-        "cleaned_at": "2026-06-24T10:05:22.931827",
+        "cleaned_at": "2026-06-26T09:24:56.924376",
         "nb_prix_records": 36,
         "nb_evolution_records": 3,
         "data_quality": {
@@ -2273,7 +2308,7 @@
           },
           "missing_fields": [],
           "imputed_fields": [],
-          "processed_at": "2026-06-24T10:05:22.931827"
+          "processed_at": "2026-06-26T09:24:56.924376"
         }
       },
       "accessibilite_logement": {
@@ -2566,7 +2601,10 @@
         "pm10_moyen": 15.38,
         "no2_moyen": 25.55,
         "date_mesure": "2020-12-31",
-        "qualite": "bonne"
+        "qualite": "bonne",
+        "indice_atmo_local": 1.12,
+        "indice_atmo_paris": 1.2,
+        "methode_local": "Indice Citeair Paris ajusté par densité et offre de transports (proxy arrondissement)"
       },
       "delits_enregistres": {
         "total_delits": 5516,
@@ -2589,20 +2627,20 @@
         "annee": 2025
       },
       "vegetation_arbres": {
-        "nombre_arbres": 2960,
-        "surface_espaces_verts_ha": 5.8,
-        "pourcentage_vegetation": 14.22,
-        "arbres_par_km2": 1090,
-        "parcs_et_jardins": 4,
+        "nombre_arbres": 816,
+        "surface_espaces_verts_ha": 34.23,
+        "pourcentage_vegetation": 20.64,
+        "arbres_par_km2": 1644,
+        "parcs_et_jardins": 11,
         "annee": 2024
       },
       "transports_publics": {
-        "stations_metro": 13,
-        "stations_rer": 2,
-        "arrets_bus": 37,
-        "lignes_metro": 5,
-        "lignes_bus": 18,
-        "total_transports": 52,
+        "stations_metro": 11,
+        "stations_rer": 1,
+        "arrets_bus": 14,
+        "lignes_metro": 4,
+        "lignes_bus": 16,
+        "total_transports": 26,
         "annee": 2024
       },
       "geocoding": {
@@ -2619,28 +2657,28 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "evolution": {
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "delits_enregistres": {
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:38.509535",
+          "fetched_at": "2026-06-26T09:24:45.444327",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "pollution_qualite_air": {
           "provider": "OpenData Paris",
           "dataset": "qualite-de-l-air-indice-citeair-jusqu-a-2020",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:39.676824",
+          "fetched_at": "2026-06-26T09:24:46.074740",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/qualite-de-l-air-indice-citeair-jusqu-a-2020/records",
           "note": "Indice dérivé des statistiques Citeair (échelle Paris, appliqué à tous les arrondissements)."
         },
@@ -2648,14 +2686,14 @@
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance (insee_pop)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.462787",
+          "fetched_at": "2026-06-26T09:24:47.824702",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "loyers": {
           "provider": "opendata.paris.fr",
           "dataset": "logement-encadrement-des-loyers",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.492064",
+          "fetched_at": "2026-06-26T09:24:47.845530",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logement-encadrement-des-loyers/exports/csv",
           "note": "Médiane des loyers de référence €/m²/mois par arrondissement."
         },
@@ -2663,7 +2701,7 @@
           "provider": "Paris / Caisse des Dépôts",
           "dataset": "logements-sociaux-dans-les-communes + RPLS arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.329380",
+          "fetched_at": "2026-06-26T09:24:48.580408",
           "url": "https://opendata.caissedesdepots.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-dans-les-communes/exports/csv",
           "note": "Taux 2024 par arrondissement ; évolution calibrée sur livraisons Paris open data."
         },
@@ -2671,7 +2709,7 @@
           "provider": "opendata.paris.fr",
           "dataset": "logements-sociaux-finances-a-paris",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.298205",
+          "fetched_at": "2026-06-26T09:24:48.477685",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-finances-a-paris/exports/csv",
           "note": "Livraisons annuelles par arrondissement pour la série 2018–2024."
         },
@@ -2679,7 +2717,7 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.372753",
+          "fetched_at": "2026-06-26T09:24:48.605413",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz",
           "note": "Typologie estimée à partir des transactions DVF (appartements, pièces)."
         },
@@ -2687,7 +2725,7 @@
           "provider": "INSEE / data.gouv",
           "dataset": "Revenu des français à la commune (Filosofi 2021)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.388021",
+          "fetched_at": "2026-06-26T09:24:50.857293",
           "url": "https://www.data.gouv.fr/api/1/datasets/revenu-des-francais-a-la-commune/",
           "note": "[DISP] Médiane (€) — revenu disponible par unité de consommation."
         },
@@ -2695,13 +2733,13 @@
           "provider": "data.gouv + BAN + Nominatim",
           "dataset": "geocoding-arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.906654",
+          "fetched_at": "2026-06-26T09:24:51.981181",
           "url": "https://api-adresse.data.gouv.fr/search/",
           "note": "Centroïde médian ; BAN prioritaire, Nominatim en secours."
         }
       },
       "metadata": {
-        "cleaned_at": "2026-06-24T10:05:22.942467",
+        "cleaned_at": "2026-06-26T09:24:56.938165",
         "nb_prix_records": 36,
         "nb_evolution_records": 3,
         "data_quality": {
@@ -2712,7 +2750,7 @@
           },
           "missing_fields": [],
           "imputed_fields": [],
-          "processed_at": "2026-06-24T10:05:22.942467"
+          "processed_at": "2026-06-26T09:24:56.938165"
         }
       },
       "accessibilite_logement": {
@@ -3005,7 +3043,10 @@
         "pm10_moyen": 15.38,
         "no2_moyen": 25.55,
         "date_mesure": "2020-12-31",
-        "qualite": "bonne"
+        "qualite": "bonne",
+        "indice_atmo_local": 1.16,
+        "indice_atmo_paris": 1.2,
+        "methode_local": "Indice Citeair Paris ajusté par densité et offre de transports (proxy arrondissement)"
       },
       "delits_enregistres": {
         "total_delits": 5494,
@@ -3028,20 +3069,20 @@
         "annee": 2025
       },
       "vegetation_arbres": {
-        "nombre_arbres": 3146,
-        "surface_espaces_verts_ha": 24.11,
-        "pourcentage_vegetation": 12.98,
-        "arbres_par_km2": 509,
-        "parcs_et_jardins": 11,
+        "nombre_arbres": 2509,
+        "surface_espaces_verts_ha": 39.71,
+        "pourcentage_vegetation": 9.31,
+        "arbres_par_km2": 414,
+        "parcs_et_jardins": 7,
         "annee": 2024
       },
       "transports_publics": {
-        "stations_metro": 6,
-        "stations_rer": 2,
-        "arrets_bus": 26,
+        "stations_metro": 13,
+        "stations_rer": 1,
+        "arrets_bus": 41,
         "lignes_metro": 1,
-        "lignes_bus": 13,
-        "total_transports": 34,
+        "lignes_bus": 17,
+        "total_transports": 55,
         "annee": 2024
       },
       "geocoding": {
@@ -3058,28 +3099,28 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "evolution": {
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "delits_enregistres": {
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:38.509535",
+          "fetched_at": "2026-06-26T09:24:45.444327",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "pollution_qualite_air": {
           "provider": "OpenData Paris",
           "dataset": "qualite-de-l-air-indice-citeair-jusqu-a-2020",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:39.676824",
+          "fetched_at": "2026-06-26T09:24:46.074740",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/qualite-de-l-air-indice-citeair-jusqu-a-2020/records",
           "note": "Indice dérivé des statistiques Citeair (échelle Paris, appliqué à tous les arrondissements)."
         },
@@ -3087,14 +3128,14 @@
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance (insee_pop)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.462787",
+          "fetched_at": "2026-06-26T09:24:47.824702",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "loyers": {
           "provider": "opendata.paris.fr",
           "dataset": "logement-encadrement-des-loyers",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.492064",
+          "fetched_at": "2026-06-26T09:24:47.845530",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logement-encadrement-des-loyers/exports/csv",
           "note": "Médiane des loyers de référence €/m²/mois par arrondissement."
         },
@@ -3102,7 +3143,7 @@
           "provider": "Paris / Caisse des Dépôts",
           "dataset": "logements-sociaux-dans-les-communes + RPLS arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.329380",
+          "fetched_at": "2026-06-26T09:24:48.580408",
           "url": "https://opendata.caissedesdepots.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-dans-les-communes/exports/csv",
           "note": "Taux 2024 par arrondissement ; évolution calibrée sur livraisons Paris open data."
         },
@@ -3110,7 +3151,7 @@
           "provider": "opendata.paris.fr",
           "dataset": "logements-sociaux-finances-a-paris",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.298205",
+          "fetched_at": "2026-06-26T09:24:48.477685",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-finances-a-paris/exports/csv",
           "note": "Livraisons annuelles par arrondissement pour la série 2018–2024."
         },
@@ -3118,7 +3159,7 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.372753",
+          "fetched_at": "2026-06-26T09:24:48.605413",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz",
           "note": "Typologie estimée à partir des transactions DVF (appartements, pièces)."
         },
@@ -3126,7 +3167,7 @@
           "provider": "INSEE / data.gouv",
           "dataset": "Revenu des français à la commune (Filosofi 2021)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.388021",
+          "fetched_at": "2026-06-26T09:24:50.857293",
           "url": "https://www.data.gouv.fr/api/1/datasets/revenu-des-francais-a-la-commune/",
           "note": "[DISP] Médiane (€) — revenu disponible par unité de consommation."
         },
@@ -3134,13 +3175,13 @@
           "provider": "data.gouv + BAN + Nominatim",
           "dataset": "geocoding-arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.906654",
+          "fetched_at": "2026-06-26T09:24:51.981181",
           "url": "https://api-adresse.data.gouv.fr/search/",
           "note": "Centroïde médian ; BAN prioritaire, Nominatim en secours."
         }
       },
       "metadata": {
-        "cleaned_at": "2026-06-24T10:05:22.955490",
+        "cleaned_at": "2026-06-26T09:24:56.957223",
         "nb_prix_records": 36,
         "nb_evolution_records": 3,
         "data_quality": {
@@ -3151,7 +3192,7 @@
           },
           "missing_fields": [],
           "imputed_fields": [],
-          "processed_at": "2026-06-24T10:05:22.955490"
+          "processed_at": "2026-06-26T09:24:56.957223"
         }
       },
       "accessibilite_logement": {
@@ -3444,7 +3485,10 @@
         "pm10_moyen": 15.38,
         "no2_moyen": 25.55,
         "date_mesure": "2020-12-31",
-        "qualite": "bonne"
+        "qualite": "bonne",
+        "indice_atmo_local": 1.12,
+        "indice_atmo_paris": 1.2,
+        "methode_local": "Indice Citeair Paris ajusté par densité et offre de transports (proxy arrondissement)"
       },
       "delits_enregistres": {
         "total_delits": 13261,
@@ -3467,20 +3511,20 @@
         "annee": 2025
       },
       "vegetation_arbres": {
-        "nombre_arbres": 1253,
-        "surface_espaces_verts_ha": 41.26,
-        "pourcentage_vegetation": 20.96,
-        "arbres_par_km2": 1571,
-        "parcs_et_jardins": 8,
+        "nombre_arbres": 4367,
+        "surface_espaces_verts_ha": 14.39,
+        "pourcentage_vegetation": 18.45,
+        "arbres_par_km2": 153,
+        "parcs_et_jardins": 2,
         "annee": 2024
       },
       "transports_publics": {
-        "stations_metro": 6,
-        "stations_rer": 5,
-        "arrets_bus": 36,
-        "lignes_metro": 5,
+        "stations_metro": 8,
+        "stations_rer": 2,
+        "arrets_bus": 39,
+        "lignes_metro": 6,
         "lignes_bus": 8,
-        "total_transports": 47,
+        "total_transports": 49,
         "annee": 2024
       },
       "geocoding": {
@@ -3498,28 +3542,28 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "evolution": {
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "delits_enregistres": {
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:38.509535",
+          "fetched_at": "2026-06-26T09:24:45.444327",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "pollution_qualite_air": {
           "provider": "OpenData Paris",
           "dataset": "qualite-de-l-air-indice-citeair-jusqu-a-2020",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:39.676824",
+          "fetched_at": "2026-06-26T09:24:46.074740",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/qualite-de-l-air-indice-citeair-jusqu-a-2020/records",
           "note": "Indice dérivé des statistiques Citeair (échelle Paris, appliqué à tous les arrondissements)."
         },
@@ -3527,14 +3571,14 @@
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance (insee_pop)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.462787",
+          "fetched_at": "2026-06-26T09:24:47.824702",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "loyers": {
           "provider": "opendata.paris.fr",
           "dataset": "logement-encadrement-des-loyers",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.492064",
+          "fetched_at": "2026-06-26T09:24:47.845530",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logement-encadrement-des-loyers/exports/csv",
           "note": "Médiane des loyers de référence €/m²/mois par arrondissement."
         },
@@ -3542,7 +3586,7 @@
           "provider": "Paris / Caisse des Dépôts",
           "dataset": "logements-sociaux-dans-les-communes + RPLS arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.329380",
+          "fetched_at": "2026-06-26T09:24:48.580408",
           "url": "https://opendata.caissedesdepots.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-dans-les-communes/exports/csv",
           "note": "Taux 2024 par arrondissement ; évolution calibrée sur livraisons Paris open data."
         },
@@ -3550,7 +3594,7 @@
           "provider": "opendata.paris.fr",
           "dataset": "logements-sociaux-finances-a-paris",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.298205",
+          "fetched_at": "2026-06-26T09:24:48.477685",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-finances-a-paris/exports/csv",
           "note": "Livraisons annuelles par arrondissement pour la série 2018–2024."
         },
@@ -3558,7 +3602,7 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.372753",
+          "fetched_at": "2026-06-26T09:24:48.605413",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz",
           "note": "Typologie estimée à partir des transactions DVF (appartements, pièces)."
         },
@@ -3566,7 +3610,7 @@
           "provider": "INSEE / data.gouv",
           "dataset": "Revenu des français à la commune (Filosofi 2021)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.388021",
+          "fetched_at": "2026-06-26T09:24:50.857293",
           "url": "https://www.data.gouv.fr/api/1/datasets/revenu-des-francais-a-la-commune/",
           "note": "[DISP] Médiane (€) — revenu disponible par unité de consommation."
         },
@@ -3574,13 +3618,13 @@
           "provider": "data.gouv + BAN + Nominatim",
           "dataset": "geocoding-arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.906654",
+          "fetched_at": "2026-06-26T09:24:51.981181",
           "url": "https://api-adresse.data.gouv.fr/search/",
           "note": "Centroïde médian ; BAN prioritaire, Nominatim en secours."
         }
       },
       "metadata": {
-        "cleaned_at": "2026-06-24T10:05:22.968860",
+        "cleaned_at": "2026-06-26T09:24:56.976037",
         "nb_prix_records": 36,
         "nb_evolution_records": 3,
         "data_quality": {
@@ -3591,7 +3635,7 @@
           },
           "missing_fields": [],
           "imputed_fields": [],
-          "processed_at": "2026-06-24T10:05:22.968860"
+          "processed_at": "2026-06-26T09:24:56.976037"
         }
       },
       "accessibilite_logement": {
@@ -3884,7 +3928,10 @@
         "pm10_moyen": 15.38,
         "no2_moyen": 25.55,
         "date_mesure": "2020-12-31",
-        "qualite": "bonne"
+        "qualite": "bonne",
+        "indice_atmo_local": 1.18,
+        "indice_atmo_paris": 1.2,
+        "methode_local": "Indice Citeair Paris ajusté par densité et offre de transports (proxy arrondissement)"
       },
       "delits_enregistres": {
         "total_delits": 11291,
@@ -3907,20 +3954,20 @@
         "annee": 2025
       },
       "vegetation_arbres": {
-        "nombre_arbres": 734,
-        "surface_espaces_verts_ha": 11.46,
-        "pourcentage_vegetation": 13.71,
-        "arbres_par_km2": 958,
-        "parcs_et_jardins": 5,
+        "nombre_arbres": 2409,
+        "surface_espaces_verts_ha": 14.62,
+        "pourcentage_vegetation": 28.22,
+        "arbres_par_km2": 1511,
+        "parcs_et_jardins": 10,
         "annee": 2024
       },
       "transports_publics": {
-        "stations_metro": 6,
-        "stations_rer": 3,
-        "arrets_bus": 50,
-        "lignes_metro": 1,
-        "lignes_bus": 8,
-        "total_transports": 59,
+        "stations_metro": 9,
+        "stations_rer": 1,
+        "arrets_bus": 22,
+        "lignes_metro": 4,
+        "lignes_bus": 9,
+        "total_transports": 32,
         "annee": 2024
       },
       "geocoding": {
@@ -3938,28 +3985,28 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "evolution": {
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "delits_enregistres": {
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:38.509535",
+          "fetched_at": "2026-06-26T09:24:45.444327",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "pollution_qualite_air": {
           "provider": "OpenData Paris",
           "dataset": "qualite-de-l-air-indice-citeair-jusqu-a-2020",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:39.676824",
+          "fetched_at": "2026-06-26T09:24:46.074740",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/qualite-de-l-air-indice-citeair-jusqu-a-2020/records",
           "note": "Indice dérivé des statistiques Citeair (échelle Paris, appliqué à tous les arrondissements)."
         },
@@ -3967,14 +4014,14 @@
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance (insee_pop)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.462787",
+          "fetched_at": "2026-06-26T09:24:47.824702",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "loyers": {
           "provider": "opendata.paris.fr",
           "dataset": "logement-encadrement-des-loyers",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.492064",
+          "fetched_at": "2026-06-26T09:24:47.845530",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logement-encadrement-des-loyers/exports/csv",
           "note": "Médiane des loyers de référence €/m²/mois par arrondissement."
         },
@@ -3982,7 +4029,7 @@
           "provider": "Paris / Caisse des Dépôts",
           "dataset": "logements-sociaux-dans-les-communes + RPLS arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.329380",
+          "fetched_at": "2026-06-26T09:24:48.580408",
           "url": "https://opendata.caissedesdepots.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-dans-les-communes/exports/csv",
           "note": "Taux 2024 par arrondissement ; évolution calibrée sur livraisons Paris open data."
         },
@@ -3990,7 +4037,7 @@
           "provider": "opendata.paris.fr",
           "dataset": "logements-sociaux-finances-a-paris",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.298205",
+          "fetched_at": "2026-06-26T09:24:48.477685",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-finances-a-paris/exports/csv",
           "note": "Livraisons annuelles par arrondissement pour la série 2018–2024."
         },
@@ -3998,7 +4045,7 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.372753",
+          "fetched_at": "2026-06-26T09:24:48.605413",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz",
           "note": "Typologie estimée à partir des transactions DVF (appartements, pièces)."
         },
@@ -4006,7 +4053,7 @@
           "provider": "INSEE / data.gouv",
           "dataset": "Revenu des français à la commune (Filosofi 2021)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.388021",
+          "fetched_at": "2026-06-26T09:24:50.857293",
           "url": "https://www.data.gouv.fr/api/1/datasets/revenu-des-francais-a-la-commune/",
           "note": "[DISP] Médiane (€) — revenu disponible par unité de consommation."
         },
@@ -4014,13 +4061,13 @@
           "provider": "data.gouv + BAN + Nominatim",
           "dataset": "geocoding-arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.906654",
+          "fetched_at": "2026-06-26T09:24:51.981181",
           "url": "https://api-adresse.data.gouv.fr/search/",
           "note": "Centroïde médian ; BAN prioritaire, Nominatim en secours."
         }
       },
       "metadata": {
-        "cleaned_at": "2026-06-24T10:05:22.980450",
+        "cleaned_at": "2026-06-26T09:24:56.996451",
         "nb_prix_records": 36,
         "nb_evolution_records": 3,
         "data_quality": {
@@ -4031,7 +4078,7 @@
           },
           "missing_fields": [],
           "imputed_fields": [],
-          "processed_at": "2026-06-24T10:05:22.980450"
+          "processed_at": "2026-06-26T09:24:56.996451"
         }
       },
       "accessibilite_logement": {
@@ -4324,7 +4371,10 @@
         "pm10_moyen": 15.38,
         "no2_moyen": 25.55,
         "date_mesure": "2020-12-31",
-        "qualite": "bonne"
+        "qualite": "bonne",
+        "indice_atmo_local": 1.21,
+        "indice_atmo_paris": 1.2,
+        "methode_local": "Indice Citeair Paris ajusté par densité et offre de transports (proxy arrondissement)"
       },
       "delits_enregistres": {
         "total_delits": 20851,
@@ -4347,20 +4397,20 @@
         "annee": 2025
       },
       "vegetation_arbres": {
-        "nombre_arbres": 4180,
-        "surface_espaces_verts_ha": 26.25,
-        "pourcentage_vegetation": 12.59,
-        "arbres_par_km2": 701,
-        "parcs_et_jardins": 7,
+        "nombre_arbres": 1923,
+        "surface_espaces_verts_ha": 46.38,
+        "pourcentage_vegetation": 5.26,
+        "arbres_par_km2": 390,
+        "parcs_et_jardins": 13,
         "annee": 2024
       },
       "transports_publics": {
-        "stations_metro": 15,
-        "stations_rer": 1,
-        "arrets_bus": 19,
-        "lignes_metro": 1,
-        "lignes_bus": 16,
-        "total_transports": 35,
+        "stations_metro": 12,
+        "stations_rer": 5,
+        "arrets_bus": 22,
+        "lignes_metro": 2,
+        "lignes_bus": 11,
+        "total_transports": 39,
         "annee": 2024
       },
       "geocoding": {
@@ -4377,28 +4427,28 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "evolution": {
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "delits_enregistres": {
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:38.509535",
+          "fetched_at": "2026-06-26T09:24:45.444327",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "pollution_qualite_air": {
           "provider": "OpenData Paris",
           "dataset": "qualite-de-l-air-indice-citeair-jusqu-a-2020",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:39.676824",
+          "fetched_at": "2026-06-26T09:24:46.074740",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/qualite-de-l-air-indice-citeair-jusqu-a-2020/records",
           "note": "Indice dérivé des statistiques Citeair (échelle Paris, appliqué à tous les arrondissements)."
         },
@@ -4406,14 +4456,14 @@
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance (insee_pop)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.462787",
+          "fetched_at": "2026-06-26T09:24:47.824702",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "loyers": {
           "provider": "opendata.paris.fr",
           "dataset": "logement-encadrement-des-loyers",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.492064",
+          "fetched_at": "2026-06-26T09:24:47.845530",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logement-encadrement-des-loyers/exports/csv",
           "note": "Médiane des loyers de référence €/m²/mois par arrondissement."
         },
@@ -4421,7 +4471,7 @@
           "provider": "Paris / Caisse des Dépôts",
           "dataset": "logements-sociaux-dans-les-communes + RPLS arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.329380",
+          "fetched_at": "2026-06-26T09:24:48.580408",
           "url": "https://opendata.caissedesdepots.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-dans-les-communes/exports/csv",
           "note": "Taux 2024 par arrondissement ; évolution calibrée sur livraisons Paris open data."
         },
@@ -4429,7 +4479,7 @@
           "provider": "opendata.paris.fr",
           "dataset": "logements-sociaux-finances-a-paris",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.298205",
+          "fetched_at": "2026-06-26T09:24:48.477685",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-finances-a-paris/exports/csv",
           "note": "Livraisons annuelles par arrondissement pour la série 2018–2024."
         },
@@ -4437,7 +4487,7 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.372753",
+          "fetched_at": "2026-06-26T09:24:48.605413",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz",
           "note": "Typologie estimée à partir des transactions DVF (appartements, pièces)."
         },
@@ -4445,7 +4495,7 @@
           "provider": "INSEE / data.gouv",
           "dataset": "Revenu des français à la commune (Filosofi 2021)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.388021",
+          "fetched_at": "2026-06-26T09:24:50.857293",
           "url": "https://www.data.gouv.fr/api/1/datasets/revenu-des-francais-a-la-commune/",
           "note": "[DISP] Médiane (€) — revenu disponible par unité de consommation."
         },
@@ -4453,13 +4503,13 @@
           "provider": "data.gouv + BAN + Nominatim",
           "dataset": "geocoding-arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.906654",
+          "fetched_at": "2026-06-26T09:24:51.981181",
           "url": "https://api-adresse.data.gouv.fr/search/",
           "note": "Centroïde médian ; BAN prioritaire, Nominatim en secours."
         }
       },
       "metadata": {
-        "cleaned_at": "2026-06-24T10:05:22.990737",
+        "cleaned_at": "2026-06-26T09:24:57.015071",
         "nb_prix_records": 36,
         "nb_evolution_records": 3,
         "data_quality": {
@@ -4470,7 +4520,7 @@
           },
           "missing_fields": [],
           "imputed_fields": [],
-          "processed_at": "2026-06-24T10:05:22.990737"
+          "processed_at": "2026-06-26T09:24:57.015071"
         }
       },
       "accessibilite_logement": {
@@ -4763,7 +4813,10 @@
         "pm10_moyen": 15.38,
         "no2_moyen": 25.55,
         "date_mesure": "2020-12-31",
-        "qualite": "bonne"
+        "qualite": "bonne",
+        "indice_atmo_local": 1.23,
+        "indice_atmo_paris": 1.2,
+        "methode_local": "Indice Citeair Paris ajusté par densité et offre de transports (proxy arrondissement)"
       },
       "delits_enregistres": {
         "total_delits": 13167,
@@ -4786,20 +4839,20 @@
         "annee": 2025
       },
       "vegetation_arbres": {
-        "nombre_arbres": 2521,
-        "surface_espaces_verts_ha": 42.39,
-        "pourcentage_vegetation": 18.17,
-        "arbres_par_km2": 170,
-        "parcs_et_jardins": 11,
+        "nombre_arbres": 3551,
+        "surface_espaces_verts_ha": 12.22,
+        "pourcentage_vegetation": 19.07,
+        "arbres_par_km2": 1084,
+        "parcs_et_jardins": 8,
         "annee": 2024
       },
       "transports_publics": {
-        "stations_metro": 10,
-        "stations_rer": 1,
-        "arrets_bus": 15,
-        "lignes_metro": 4,
-        "lignes_bus": 11,
-        "total_transports": 26,
+        "stations_metro": 2,
+        "stations_rer": 3,
+        "arrets_bus": 12,
+        "lignes_metro": 3,
+        "lignes_bus": 7,
+        "total_transports": 17,
         "annee": 2024
       },
       "geocoding": {
@@ -4816,28 +4869,28 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "evolution": {
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "delits_enregistres": {
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:38.509535",
+          "fetched_at": "2026-06-26T09:24:45.444327",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "pollution_qualite_air": {
           "provider": "OpenData Paris",
           "dataset": "qualite-de-l-air-indice-citeair-jusqu-a-2020",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:39.676824",
+          "fetched_at": "2026-06-26T09:24:46.074740",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/qualite-de-l-air-indice-citeair-jusqu-a-2020/records",
           "note": "Indice dérivé des statistiques Citeair (échelle Paris, appliqué à tous les arrondissements)."
         },
@@ -4845,14 +4898,14 @@
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance (insee_pop)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.462787",
+          "fetched_at": "2026-06-26T09:24:47.824702",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "loyers": {
           "provider": "opendata.paris.fr",
           "dataset": "logement-encadrement-des-loyers",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.492064",
+          "fetched_at": "2026-06-26T09:24:47.845530",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logement-encadrement-des-loyers/exports/csv",
           "note": "Médiane des loyers de référence €/m²/mois par arrondissement."
         },
@@ -4860,7 +4913,7 @@
           "provider": "Paris / Caisse des Dépôts",
           "dataset": "logements-sociaux-dans-les-communes + RPLS arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.329380",
+          "fetched_at": "2026-06-26T09:24:48.580408",
           "url": "https://opendata.caissedesdepots.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-dans-les-communes/exports/csv",
           "note": "Taux 2024 par arrondissement ; évolution calibrée sur livraisons Paris open data."
         },
@@ -4868,7 +4921,7 @@
           "provider": "opendata.paris.fr",
           "dataset": "logements-sociaux-finances-a-paris",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.298205",
+          "fetched_at": "2026-06-26T09:24:48.477685",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-finances-a-paris/exports/csv",
           "note": "Livraisons annuelles par arrondissement pour la série 2018–2024."
         },
@@ -4876,7 +4929,7 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.372753",
+          "fetched_at": "2026-06-26T09:24:48.605413",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz",
           "note": "Typologie estimée à partir des transactions DVF (appartements, pièces)."
         },
@@ -4884,7 +4937,7 @@
           "provider": "INSEE / data.gouv",
           "dataset": "Revenu des français à la commune (Filosofi 2021)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.388021",
+          "fetched_at": "2026-06-26T09:24:50.857293",
           "url": "https://www.data.gouv.fr/api/1/datasets/revenu-des-francais-a-la-commune/",
           "note": "[DISP] Médiane (€) — revenu disponible par unité de consommation."
         },
@@ -4892,13 +4945,13 @@
           "provider": "data.gouv + BAN + Nominatim",
           "dataset": "geocoding-arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.906654",
+          "fetched_at": "2026-06-26T09:24:51.981181",
           "url": "https://api-adresse.data.gouv.fr/search/",
           "note": "Centroïde médian ; BAN prioritaire, Nominatim en secours."
         }
       },
       "metadata": {
-        "cleaned_at": "2026-06-24T10:05:23.003750",
+        "cleaned_at": "2026-06-26T09:24:57.034479",
         "nb_prix_records": 36,
         "nb_evolution_records": 3,
         "data_quality": {
@@ -4909,7 +4962,7 @@
           },
           "missing_fields": [],
           "imputed_fields": [],
-          "processed_at": "2026-06-24T10:05:23.003750"
+          "processed_at": "2026-06-26T09:24:57.034479"
         }
       },
       "accessibilite_logement": {
@@ -5202,7 +5255,10 @@
         "pm10_moyen": 15.38,
         "no2_moyen": 25.55,
         "date_mesure": "2020-12-31",
-        "qualite": "bonne"
+        "qualite": "bonne",
+        "indice_atmo_local": 1.2,
+        "indice_atmo_paris": 1.2,
+        "methode_local": "Indice Citeair Paris ajusté par densité et offre de transports (proxy arrondissement)"
       },
       "delits_enregistres": {
         "total_delits": 20536,
@@ -5225,20 +5281,20 @@
         "annee": 2025
       },
       "vegetation_arbres": {
-        "nombre_arbres": 2741,
-        "surface_espaces_verts_ha": 17.79,
-        "pourcentage_vegetation": 18.4,
-        "arbres_par_km2": 1424,
-        "parcs_et_jardins": 11,
+        "nombre_arbres": 1324,
+        "surface_espaces_verts_ha": 13.33,
+        "pourcentage_vegetation": 11.77,
+        "arbres_par_km2": 944,
+        "parcs_et_jardins": 15,
         "annee": 2024
       },
       "transports_publics": {
-        "stations_metro": 12,
-        "stations_rer": 2,
-        "arrets_bus": 20,
-        "lignes_metro": 2,
-        "lignes_bus": 13,
-        "total_transports": 34,
+        "stations_metro": 4,
+        "stations_rer": 5,
+        "arrets_bus": 42,
+        "lignes_metro": 6,
+        "lignes_bus": 11,
+        "total_transports": 51,
         "annee": 2024
       },
       "geocoding": {
@@ -5255,28 +5311,28 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "evolution": {
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "delits_enregistres": {
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:38.509535",
+          "fetched_at": "2026-06-26T09:24:45.444327",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "pollution_qualite_air": {
           "provider": "OpenData Paris",
           "dataset": "qualite-de-l-air-indice-citeair-jusqu-a-2020",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:39.676824",
+          "fetched_at": "2026-06-26T09:24:46.074740",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/qualite-de-l-air-indice-citeair-jusqu-a-2020/records",
           "note": "Indice dérivé des statistiques Citeair (échelle Paris, appliqué à tous les arrondissements)."
         },
@@ -5284,14 +5340,14 @@
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance (insee_pop)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.462787",
+          "fetched_at": "2026-06-26T09:24:47.824702",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "loyers": {
           "provider": "opendata.paris.fr",
           "dataset": "logement-encadrement-des-loyers",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.492064",
+          "fetched_at": "2026-06-26T09:24:47.845530",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logement-encadrement-des-loyers/exports/csv",
           "note": "Médiane des loyers de référence €/m²/mois par arrondissement."
         },
@@ -5299,7 +5355,7 @@
           "provider": "Paris / Caisse des Dépôts",
           "dataset": "logements-sociaux-dans-les-communes + RPLS arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.329380",
+          "fetched_at": "2026-06-26T09:24:48.580408",
           "url": "https://opendata.caissedesdepots.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-dans-les-communes/exports/csv",
           "note": "Taux 2024 par arrondissement ; évolution calibrée sur livraisons Paris open data."
         },
@@ -5307,7 +5363,7 @@
           "provider": "opendata.paris.fr",
           "dataset": "logements-sociaux-finances-a-paris",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.298205",
+          "fetched_at": "2026-06-26T09:24:48.477685",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-finances-a-paris/exports/csv",
           "note": "Livraisons annuelles par arrondissement pour la série 2018–2024."
         },
@@ -5315,7 +5371,7 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.372753",
+          "fetched_at": "2026-06-26T09:24:48.605413",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz",
           "note": "Typologie estimée à partir des transactions DVF (appartements, pièces)."
         },
@@ -5323,7 +5379,7 @@
           "provider": "INSEE / data.gouv",
           "dataset": "Revenu des français à la commune (Filosofi 2021)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.388021",
+          "fetched_at": "2026-06-26T09:24:50.857293",
           "url": "https://www.data.gouv.fr/api/1/datasets/revenu-des-francais-a-la-commune/",
           "note": "[DISP] Médiane (€) — revenu disponible par unité de consommation."
         },
@@ -5331,13 +5387,13 @@
           "provider": "data.gouv + BAN + Nominatim",
           "dataset": "geocoding-arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.906654",
+          "fetched_at": "2026-06-26T09:24:51.981181",
           "url": "https://api-adresse.data.gouv.fr/search/",
           "note": "Centroïde médian ; BAN prioritaire, Nominatim en secours."
         }
       },
       "metadata": {
-        "cleaned_at": "2026-06-24T10:05:23.019916",
+        "cleaned_at": "2026-06-26T09:24:57.049364",
         "nb_prix_records": 36,
         "nb_evolution_records": 3,
         "data_quality": {
@@ -5348,7 +5404,7 @@
           },
           "missing_fields": [],
           "imputed_fields": [],
-          "processed_at": "2026-06-24T10:05:23.019916"
+          "processed_at": "2026-06-26T09:24:57.049364"
         }
       },
       "accessibilite_logement": {
@@ -5641,7 +5697,10 @@
         "pm10_moyen": 15.38,
         "no2_moyen": 25.55,
         "date_mesure": "2020-12-31",
-        "qualite": "bonne"
+        "qualite": "bonne",
+        "indice_atmo_local": 1.17,
+        "indice_atmo_paris": 1.2,
+        "methode_local": "Indice Citeair Paris ajusté par densité et offre de transports (proxy arrondissement)"
       },
       "delits_enregistres": {
         "total_delits": 16242,
@@ -5664,20 +5723,20 @@
         "annee": 2025
       },
       "vegetation_arbres": {
-        "nombre_arbres": 4890,
-        "surface_espaces_verts_ha": 28.94,
-        "pourcentage_vegetation": 9.16,
-        "arbres_par_km2": 232,
-        "parcs_et_jardins": 13,
+        "nombre_arbres": 2213,
+        "surface_espaces_verts_ha": 11.89,
+        "pourcentage_vegetation": 14.23,
+        "arbres_par_km2": 1138,
+        "parcs_et_jardins": 3,
         "annee": 2024
       },
       "transports_publics": {
-        "stations_metro": 12,
-        "stations_rer": 2,
-        "arrets_bus": 28,
+        "stations_metro": 4,
+        "stations_rer": 3,
+        "arrets_bus": 26,
         "lignes_metro": 2,
-        "lignes_bus": 17,
-        "total_transports": 42,
+        "lignes_bus": 5,
+        "total_transports": 33,
         "annee": 2024
       },
       "geocoding": {
@@ -5695,28 +5754,28 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "evolution": {
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "delits_enregistres": {
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:38.509535",
+          "fetched_at": "2026-06-26T09:24:45.444327",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "pollution_qualite_air": {
           "provider": "OpenData Paris",
           "dataset": "qualite-de-l-air-indice-citeair-jusqu-a-2020",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:39.676824",
+          "fetched_at": "2026-06-26T09:24:46.074740",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/qualite-de-l-air-indice-citeair-jusqu-a-2020/records",
           "note": "Indice dérivé des statistiques Citeair (échelle Paris, appliqué à tous les arrondissements)."
         },
@@ -5724,14 +5783,14 @@
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance (insee_pop)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.462787",
+          "fetched_at": "2026-06-26T09:24:47.824702",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "loyers": {
           "provider": "opendata.paris.fr",
           "dataset": "logement-encadrement-des-loyers",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.492064",
+          "fetched_at": "2026-06-26T09:24:47.845530",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logement-encadrement-des-loyers/exports/csv",
           "note": "Médiane des loyers de référence €/m²/mois par arrondissement."
         },
@@ -5739,7 +5798,7 @@
           "provider": "Paris / Caisse des Dépôts",
           "dataset": "logements-sociaux-dans-les-communes + RPLS arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.329380",
+          "fetched_at": "2026-06-26T09:24:48.580408",
           "url": "https://opendata.caissedesdepots.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-dans-les-communes/exports/csv",
           "note": "Taux 2024 par arrondissement ; évolution calibrée sur livraisons Paris open data."
         },
@@ -5747,7 +5806,7 @@
           "provider": "opendata.paris.fr",
           "dataset": "logements-sociaux-finances-a-paris",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.298205",
+          "fetched_at": "2026-06-26T09:24:48.477685",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-finances-a-paris/exports/csv",
           "note": "Livraisons annuelles par arrondissement pour la série 2018–2024."
         },
@@ -5755,7 +5814,7 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.372753",
+          "fetched_at": "2026-06-26T09:24:48.605413",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz",
           "note": "Typologie estimée à partir des transactions DVF (appartements, pièces)."
         },
@@ -5763,7 +5822,7 @@
           "provider": "INSEE / data.gouv",
           "dataset": "Revenu des français à la commune (Filosofi 2021)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.388021",
+          "fetched_at": "2026-06-26T09:24:50.857293",
           "url": "https://www.data.gouv.fr/api/1/datasets/revenu-des-francais-a-la-commune/",
           "note": "[DISP] Médiane (€) — revenu disponible par unité de consommation."
         },
@@ -5771,13 +5830,13 @@
           "provider": "data.gouv + BAN + Nominatim",
           "dataset": "geocoding-arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.906654",
+          "fetched_at": "2026-06-26T09:24:51.981181",
           "url": "https://api-adresse.data.gouv.fr/search/",
           "note": "Centroïde médian ; BAN prioritaire, Nominatim en secours."
         }
       },
       "metadata": {
-        "cleaned_at": "2026-06-24T10:05:23.037014",
+        "cleaned_at": "2026-06-26T09:24:57.069146",
         "nb_prix_records": 36,
         "nb_evolution_records": 3,
         "data_quality": {
@@ -5788,7 +5847,7 @@
           },
           "missing_fields": [],
           "imputed_fields": [],
-          "processed_at": "2026-06-24T10:05:23.037014"
+          "processed_at": "2026-06-26T09:24:57.069146"
         }
       },
       "accessibilite_logement": {
@@ -6081,7 +6140,10 @@
         "pm10_moyen": 15.38,
         "no2_moyen": 25.55,
         "date_mesure": "2020-12-31",
-        "qualite": "bonne"
+        "qualite": "bonne",
+        "indice_atmo_local": 1.15,
+        "indice_atmo_paris": 1.2,
+        "methode_local": "Indice Citeair Paris ajusté par densité et offre de transports (proxy arrondissement)"
       },
       "delits_enregistres": {
         "total_delits": 11375,
@@ -6104,20 +6166,20 @@
         "annee": 2025
       },
       "vegetation_arbres": {
-        "nombre_arbres": 2599,
-        "surface_espaces_verts_ha": 14.81,
-        "pourcentage_vegetation": 19.73,
-        "arbres_par_km2": 1937,
-        "parcs_et_jardins": 3,
+        "nombre_arbres": 2115,
+        "surface_espaces_verts_ha": 15.72,
+        "pourcentage_vegetation": 12.04,
+        "arbres_par_km2": 1054,
+        "parcs_et_jardins": 9,
         "annee": 2024
       },
       "transports_publics": {
         "stations_metro": 6,
-        "stations_rer": 1,
-        "arrets_bus": 27,
-        "lignes_metro": 2,
-        "lignes_bus": 17,
-        "total_transports": 34,
+        "stations_rer": 0,
+        "arrets_bus": 13,
+        "lignes_metro": 1,
+        "lignes_bus": 5,
+        "total_transports": 19,
         "annee": 2024
       },
       "geocoding": {
@@ -6135,28 +6197,28 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "evolution": {
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "delits_enregistres": {
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:38.509535",
+          "fetched_at": "2026-06-26T09:24:45.444327",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "pollution_qualite_air": {
           "provider": "OpenData Paris",
           "dataset": "qualite-de-l-air-indice-citeair-jusqu-a-2020",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:39.676824",
+          "fetched_at": "2026-06-26T09:24:46.074740",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/qualite-de-l-air-indice-citeair-jusqu-a-2020/records",
           "note": "Indice dérivé des statistiques Citeair (échelle Paris, appliqué à tous les arrondissements)."
         },
@@ -6164,14 +6226,14 @@
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance (insee_pop)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.462787",
+          "fetched_at": "2026-06-26T09:24:47.824702",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "loyers": {
           "provider": "opendata.paris.fr",
           "dataset": "logement-encadrement-des-loyers",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.492064",
+          "fetched_at": "2026-06-26T09:24:47.845530",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logement-encadrement-des-loyers/exports/csv",
           "note": "Médiane des loyers de référence €/m²/mois par arrondissement."
         },
@@ -6179,7 +6241,7 @@
           "provider": "Paris / Caisse des Dépôts",
           "dataset": "logements-sociaux-dans-les-communes + RPLS arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.329380",
+          "fetched_at": "2026-06-26T09:24:48.580408",
           "url": "https://opendata.caissedesdepots.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-dans-les-communes/exports/csv",
           "note": "Taux 2024 par arrondissement ; évolution calibrée sur livraisons Paris open data."
         },
@@ -6187,7 +6249,7 @@
           "provider": "opendata.paris.fr",
           "dataset": "logements-sociaux-finances-a-paris",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.298205",
+          "fetched_at": "2026-06-26T09:24:48.477685",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-finances-a-paris/exports/csv",
           "note": "Livraisons annuelles par arrondissement pour la série 2018–2024."
         },
@@ -6195,7 +6257,7 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.372753",
+          "fetched_at": "2026-06-26T09:24:48.605413",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz",
           "note": "Typologie estimée à partir des transactions DVF (appartements, pièces)."
         },
@@ -6203,7 +6265,7 @@
           "provider": "INSEE / data.gouv",
           "dataset": "Revenu des français à la commune (Filosofi 2021)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.388021",
+          "fetched_at": "2026-06-26T09:24:50.857293",
           "url": "https://www.data.gouv.fr/api/1/datasets/revenu-des-francais-a-la-commune/",
           "note": "[DISP] Médiane (€) — revenu disponible par unité de consommation."
         },
@@ -6211,13 +6273,13 @@
           "provider": "data.gouv + BAN + Nominatim",
           "dataset": "geocoding-arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.906654",
+          "fetched_at": "2026-06-26T09:24:51.981181",
           "url": "https://api-adresse.data.gouv.fr/search/",
           "note": "Centroïde médian ; BAN prioritaire, Nominatim en secours."
         }
       },
       "metadata": {
-        "cleaned_at": "2026-06-24T10:05:23.047104",
+        "cleaned_at": "2026-06-26T09:24:57.087704",
         "nb_prix_records": 36,
         "nb_evolution_records": 3,
         "data_quality": {
@@ -6228,7 +6290,7 @@
           },
           "missing_fields": [],
           "imputed_fields": [],
-          "processed_at": "2026-06-24T10:05:23.047104"
+          "processed_at": "2026-06-26T09:24:57.087704"
         }
       },
       "accessibilite_logement": {
@@ -6521,7 +6583,10 @@
         "pm10_moyen": 15.38,
         "no2_moyen": 25.55,
         "date_mesure": "2020-12-31",
-        "qualite": "bonne"
+        "qualite": "bonne",
+        "indice_atmo_local": 1.22,
+        "indice_atmo_paris": 1.2,
+        "methode_local": "Indice Citeair Paris ajusté par densité et offre de transports (proxy arrondissement)"
       },
       "delits_enregistres": {
         "total_delits": 18967,
@@ -6544,20 +6609,20 @@
         "annee": 2025
       },
       "vegetation_arbres": {
-        "nombre_arbres": 4792,
-        "surface_espaces_verts_ha": 33.64,
-        "pourcentage_vegetation": 17.13,
-        "arbres_par_km2": 168,
-        "parcs_et_jardins": 9,
+        "nombre_arbres": 3043,
+        "surface_espaces_verts_ha": 18.9,
+        "pourcentage_vegetation": 22.03,
+        "arbres_par_km2": 659,
+        "parcs_et_jardins": 7,
         "annee": 2024
       },
       "transports_publics": {
-        "stations_metro": 15,
-        "stations_rer": 4,
-        "arrets_bus": 50,
-        "lignes_metro": 5,
-        "lignes_bus": 10,
-        "total_transports": 69,
+        "stations_metro": 6,
+        "stations_rer": 0,
+        "arrets_bus": 40,
+        "lignes_metro": 6,
+        "lignes_bus": 5,
+        "total_transports": 46,
         "annee": 2024
       },
       "geocoding": {
@@ -6574,28 +6639,28 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "evolution": {
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "delits_enregistres": {
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:38.509535",
+          "fetched_at": "2026-06-26T09:24:45.444327",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "pollution_qualite_air": {
           "provider": "OpenData Paris",
           "dataset": "qualite-de-l-air-indice-citeair-jusqu-a-2020",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:39.676824",
+          "fetched_at": "2026-06-26T09:24:46.074740",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/qualite-de-l-air-indice-citeair-jusqu-a-2020/records",
           "note": "Indice dérivé des statistiques Citeair (échelle Paris, appliqué à tous les arrondissements)."
         },
@@ -6603,14 +6668,14 @@
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance (insee_pop)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.462787",
+          "fetched_at": "2026-06-26T09:24:47.824702",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "loyers": {
           "provider": "opendata.paris.fr",
           "dataset": "logement-encadrement-des-loyers",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.492064",
+          "fetched_at": "2026-06-26T09:24:47.845530",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logement-encadrement-des-loyers/exports/csv",
           "note": "Médiane des loyers de référence €/m²/mois par arrondissement."
         },
@@ -6618,7 +6683,7 @@
           "provider": "Paris / Caisse des Dépôts",
           "dataset": "logements-sociaux-dans-les-communes + RPLS arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.329380",
+          "fetched_at": "2026-06-26T09:24:48.580408",
           "url": "https://opendata.caissedesdepots.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-dans-les-communes/exports/csv",
           "note": "Taux 2024 par arrondissement ; évolution calibrée sur livraisons Paris open data."
         },
@@ -6626,7 +6691,7 @@
           "provider": "opendata.paris.fr",
           "dataset": "logements-sociaux-finances-a-paris",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.298205",
+          "fetched_at": "2026-06-26T09:24:48.477685",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-finances-a-paris/exports/csv",
           "note": "Livraisons annuelles par arrondissement pour la série 2018–2024."
         },
@@ -6634,7 +6699,7 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.372753",
+          "fetched_at": "2026-06-26T09:24:48.605413",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz",
           "note": "Typologie estimée à partir des transactions DVF (appartements, pièces)."
         },
@@ -6642,7 +6707,7 @@
           "provider": "INSEE / data.gouv",
           "dataset": "Revenu des français à la commune (Filosofi 2021)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.388021",
+          "fetched_at": "2026-06-26T09:24:50.857293",
           "url": "https://www.data.gouv.fr/api/1/datasets/revenu-des-francais-a-la-commune/",
           "note": "[DISP] Médiane (€) — revenu disponible par unité de consommation."
         },
@@ -6650,13 +6715,13 @@
           "provider": "data.gouv + BAN + Nominatim",
           "dataset": "geocoding-arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.906654",
+          "fetched_at": "2026-06-26T09:24:51.981181",
           "url": "https://api-adresse.data.gouv.fr/search/",
           "note": "Centroïde médian ; BAN prioritaire, Nominatim en secours."
         }
       },
       "metadata": {
-        "cleaned_at": "2026-06-24T10:05:23.054728",
+        "cleaned_at": "2026-06-26T09:24:57.106748",
         "nb_prix_records": 36,
         "nb_evolution_records": 3,
         "data_quality": {
@@ -6667,7 +6732,7 @@
           },
           "missing_fields": [],
           "imputed_fields": [],
-          "processed_at": "2026-06-24T10:05:23.054728"
+          "processed_at": "2026-06-26T09:24:57.106748"
         }
       },
       "accessibilite_logement": {
@@ -6960,7 +7025,10 @@
         "pm10_moyen": 15.38,
         "no2_moyen": 25.55,
         "date_mesure": "2020-12-31",
-        "qualite": "bonne"
+        "qualite": "bonne",
+        "indice_atmo_local": 1.15,
+        "indice_atmo_paris": 1.2,
+        "methode_local": "Indice Citeair Paris ajusté par densité et offre de transports (proxy arrondissement)"
       },
       "delits_enregistres": {
         "total_delits": 13812,
@@ -6983,20 +7051,20 @@
         "annee": 2025
       },
       "vegetation_arbres": {
-        "nombre_arbres": 3598,
-        "surface_espaces_verts_ha": 25.92,
-        "pourcentage_vegetation": 22.91,
-        "arbres_par_km2": 926,
-        "parcs_et_jardins": 10,
+        "nombre_arbres": 4358,
+        "surface_espaces_verts_ha": 11.43,
+        "pourcentage_vegetation": 7.53,
+        "arbres_par_km2": 864,
+        "parcs_et_jardins": 13,
         "annee": 2024
       },
       "transports_publics": {
-        "stations_metro": 13,
-        "stations_rer": 2,
-        "arrets_bus": 32,
-        "lignes_metro": 2,
+        "stations_metro": 9,
+        "stations_rer": 5,
+        "arrets_bus": 22,
+        "lignes_metro": 6,
         "lignes_bus": 12,
-        "total_transports": 47,
+        "total_transports": 36,
         "annee": 2024
       },
       "geocoding": {
@@ -7013,28 +7081,28 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "evolution": {
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "delits_enregistres": {
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:38.509535",
+          "fetched_at": "2026-06-26T09:24:45.444327",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "pollution_qualite_air": {
           "provider": "OpenData Paris",
           "dataset": "qualite-de-l-air-indice-citeair-jusqu-a-2020",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:39.676824",
+          "fetched_at": "2026-06-26T09:24:46.074740",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/qualite-de-l-air-indice-citeair-jusqu-a-2020/records",
           "note": "Indice dérivé des statistiques Citeair (échelle Paris, appliqué à tous les arrondissements)."
         },
@@ -7042,14 +7110,14 @@
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance (insee_pop)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.462787",
+          "fetched_at": "2026-06-26T09:24:47.824702",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "loyers": {
           "provider": "opendata.paris.fr",
           "dataset": "logement-encadrement-des-loyers",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.492064",
+          "fetched_at": "2026-06-26T09:24:47.845530",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logement-encadrement-des-loyers/exports/csv",
           "note": "Médiane des loyers de référence €/m²/mois par arrondissement."
         },
@@ -7057,7 +7125,7 @@
           "provider": "Paris / Caisse des Dépôts",
           "dataset": "logements-sociaux-dans-les-communes + RPLS arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.329380",
+          "fetched_at": "2026-06-26T09:24:48.580408",
           "url": "https://opendata.caissedesdepots.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-dans-les-communes/exports/csv",
           "note": "Taux 2024 par arrondissement ; évolution calibrée sur livraisons Paris open data."
         },
@@ -7065,7 +7133,7 @@
           "provider": "opendata.paris.fr",
           "dataset": "logements-sociaux-finances-a-paris",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.298205",
+          "fetched_at": "2026-06-26T09:24:48.477685",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-finances-a-paris/exports/csv",
           "note": "Livraisons annuelles par arrondissement pour la série 2018–2024."
         },
@@ -7073,7 +7141,7 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.372753",
+          "fetched_at": "2026-06-26T09:24:48.605413",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz",
           "note": "Typologie estimée à partir des transactions DVF (appartements, pièces)."
         },
@@ -7081,7 +7149,7 @@
           "provider": "INSEE / data.gouv",
           "dataset": "Revenu des français à la commune (Filosofi 2021)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.388021",
+          "fetched_at": "2026-06-26T09:24:50.857293",
           "url": "https://www.data.gouv.fr/api/1/datasets/revenu-des-francais-a-la-commune/",
           "note": "[DISP] Médiane (€) — revenu disponible par unité de consommation."
         },
@@ -7089,13 +7157,13 @@
           "provider": "data.gouv + BAN + Nominatim",
           "dataset": "geocoding-arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.906654",
+          "fetched_at": "2026-06-26T09:24:51.981181",
           "url": "https://api-adresse.data.gouv.fr/search/",
           "note": "Centroïde médian ; BAN prioritaire, Nominatim en secours."
         }
       },
       "metadata": {
-        "cleaned_at": "2026-06-24T10:05:23.060696",
+        "cleaned_at": "2026-06-26T09:24:57.118891",
         "nb_prix_records": 36,
         "nb_evolution_records": 3,
         "data_quality": {
@@ -7106,7 +7174,7 @@
           },
           "missing_fields": [],
           "imputed_fields": [],
-          "processed_at": "2026-06-24T10:05:23.060696"
+          "processed_at": "2026-06-26T09:24:57.118891"
         }
       },
       "accessibilite_logement": {
@@ -7399,7 +7467,10 @@
         "pm10_moyen": 15.38,
         "no2_moyen": 25.55,
         "date_mesure": "2020-12-31",
-        "qualite": "bonne"
+        "qualite": "bonne",
+        "indice_atmo_local": 1.23,
+        "indice_atmo_paris": 1.2,
+        "methode_local": "Indice Citeair Paris ajusté par densité et offre de transports (proxy arrondissement)"
       },
       "delits_enregistres": {
         "total_delits": 13111,
@@ -7422,20 +7493,20 @@
         "annee": 2025
       },
       "vegetation_arbres": {
-        "nombre_arbres": 2165,
-        "surface_espaces_verts_ha": 27.13,
-        "pourcentage_vegetation": 27.81,
-        "arbres_par_km2": 521,
-        "parcs_et_jardins": 14,
+        "nombre_arbres": 2661,
+        "surface_espaces_verts_ha": 32.01,
+        "pourcentage_vegetation": 13.75,
+        "arbres_par_km2": 188,
+        "parcs_et_jardins": 13,
         "annee": 2024
       },
       "transports_publics": {
-        "stations_metro": 8,
-        "stations_rer": 5,
-        "arrets_bus": 28,
+        "stations_metro": 12,
+        "stations_rer": 1,
+        "arrets_bus": 36,
         "lignes_metro": 1,
-        "lignes_bus": 6,
-        "total_transports": 41,
+        "lignes_bus": 7,
+        "total_transports": 49,
         "annee": 2024
       },
       "geocoding": {
@@ -7453,28 +7524,28 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "evolution": {
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "delits_enregistres": {
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:38.509535",
+          "fetched_at": "2026-06-26T09:24:45.444327",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "pollution_qualite_air": {
           "provider": "OpenData Paris",
           "dataset": "qualite-de-l-air-indice-citeair-jusqu-a-2020",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:39.676824",
+          "fetched_at": "2026-06-26T09:24:46.074740",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/qualite-de-l-air-indice-citeair-jusqu-a-2020/records",
           "note": "Indice dérivé des statistiques Citeair (échelle Paris, appliqué à tous les arrondissements)."
         },
@@ -7482,14 +7553,14 @@
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance (insee_pop)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.462787",
+          "fetched_at": "2026-06-26T09:24:47.824702",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "loyers": {
           "provider": "opendata.paris.fr",
           "dataset": "logement-encadrement-des-loyers",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.492064",
+          "fetched_at": "2026-06-26T09:24:47.845530",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logement-encadrement-des-loyers/exports/csv",
           "note": "Médiane des loyers de référence €/m²/mois par arrondissement."
         },
@@ -7497,7 +7568,7 @@
           "provider": "Paris / Caisse des Dépôts",
           "dataset": "logements-sociaux-dans-les-communes + RPLS arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.329380",
+          "fetched_at": "2026-06-26T09:24:48.580408",
           "url": "https://opendata.caissedesdepots.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-dans-les-communes/exports/csv",
           "note": "Taux 2024 par arrondissement ; évolution calibrée sur livraisons Paris open data."
         },
@@ -7505,7 +7576,7 @@
           "provider": "opendata.paris.fr",
           "dataset": "logements-sociaux-finances-a-paris",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.298205",
+          "fetched_at": "2026-06-26T09:24:48.477685",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-finances-a-paris/exports/csv",
           "note": "Livraisons annuelles par arrondissement pour la série 2018–2024."
         },
@@ -7513,7 +7584,7 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.372753",
+          "fetched_at": "2026-06-26T09:24:48.605413",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz",
           "note": "Typologie estimée à partir des transactions DVF (appartements, pièces)."
         },
@@ -7521,7 +7592,7 @@
           "provider": "INSEE / data.gouv",
           "dataset": "Revenu des français à la commune (Filosofi 2021)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.388021",
+          "fetched_at": "2026-06-26T09:24:50.857293",
           "url": "https://www.data.gouv.fr/api/1/datasets/revenu-des-francais-a-la-commune/",
           "note": "[DISP] Médiane (€) — revenu disponible par unité de consommation."
         },
@@ -7529,13 +7600,13 @@
           "provider": "data.gouv + BAN + Nominatim",
           "dataset": "geocoding-arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.906654",
+          "fetched_at": "2026-06-26T09:24:51.981181",
           "url": "https://api-adresse.data.gouv.fr/search/",
           "note": "Centroïde médian ; BAN prioritaire, Nominatim en secours."
         }
       },
       "metadata": {
-        "cleaned_at": "2026-06-24T10:05:23.071196",
+        "cleaned_at": "2026-06-26T09:24:57.140137",
         "nb_prix_records": 36,
         "nb_evolution_records": 3,
         "data_quality": {
@@ -7546,7 +7617,7 @@
           },
           "missing_fields": [],
           "imputed_fields": [],
-          "processed_at": "2026-06-24T10:05:23.071196"
+          "processed_at": "2026-06-26T09:24:57.140137"
         }
       },
       "accessibilite_logement": {
@@ -7839,7 +7910,10 @@
         "pm10_moyen": 15.38,
         "no2_moyen": 25.55,
         "date_mesure": "2020-12-31",
-        "qualite": "bonne"
+        "qualite": "bonne",
+        "indice_atmo_local": 1.25,
+        "indice_atmo_paris": 1.2,
+        "methode_local": "Indice Citeair Paris ajusté par densité et offre de transports (proxy arrondissement)"
       },
       "delits_enregistres": {
         "total_delits": 25665,
@@ -7862,20 +7936,20 @@
         "annee": 2025
       },
       "vegetation_arbres": {
-        "nombre_arbres": 937,
-        "surface_espaces_verts_ha": 11.31,
-        "pourcentage_vegetation": 28.35,
-        "arbres_par_km2": 1901,
-        "parcs_et_jardins": 9,
+        "nombre_arbres": 4731,
+        "surface_espaces_verts_ha": 32.13,
+        "pourcentage_vegetation": 23.3,
+        "arbres_par_km2": 1335,
+        "parcs_et_jardins": 8,
         "annee": 2024
       },
       "transports_publics": {
-        "stations_metro": 7,
-        "stations_rer": 3,
-        "arrets_bus": 16,
+        "stations_metro": 13,
+        "stations_rer": 0,
+        "arrets_bus": 37,
         "lignes_metro": 1,
-        "lignes_bus": 6,
-        "total_transports": 26,
+        "lignes_bus": 19,
+        "total_transports": 50,
         "annee": 2024
       },
       "geocoding": {
@@ -7893,28 +7967,28 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "evolution": {
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "delits_enregistres": {
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:38.509535",
+          "fetched_at": "2026-06-26T09:24:45.444327",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "pollution_qualite_air": {
           "provider": "OpenData Paris",
           "dataset": "qualite-de-l-air-indice-citeair-jusqu-a-2020",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:39.676824",
+          "fetched_at": "2026-06-26T09:24:46.074740",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/qualite-de-l-air-indice-citeair-jusqu-a-2020/records",
           "note": "Indice dérivé des statistiques Citeair (échelle Paris, appliqué à tous les arrondissements)."
         },
@@ -7922,14 +7996,14 @@
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance (insee_pop)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.462787",
+          "fetched_at": "2026-06-26T09:24:47.824702",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "loyers": {
           "provider": "opendata.paris.fr",
           "dataset": "logement-encadrement-des-loyers",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.492064",
+          "fetched_at": "2026-06-26T09:24:47.845530",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logement-encadrement-des-loyers/exports/csv",
           "note": "Médiane des loyers de référence €/m²/mois par arrondissement."
         },
@@ -7937,7 +8011,7 @@
           "provider": "Paris / Caisse des Dépôts",
           "dataset": "logements-sociaux-dans-les-communes + RPLS arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.329380",
+          "fetched_at": "2026-06-26T09:24:48.580408",
           "url": "https://opendata.caissedesdepots.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-dans-les-communes/exports/csv",
           "note": "Taux 2024 par arrondissement ; évolution calibrée sur livraisons Paris open data."
         },
@@ -7945,7 +8019,7 @@
           "provider": "opendata.paris.fr",
           "dataset": "logements-sociaux-finances-a-paris",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.298205",
+          "fetched_at": "2026-06-26T09:24:48.477685",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-finances-a-paris/exports/csv",
           "note": "Livraisons annuelles par arrondissement pour la série 2018–2024."
         },
@@ -7953,7 +8027,7 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.372753",
+          "fetched_at": "2026-06-26T09:24:48.605413",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz",
           "note": "Typologie estimée à partir des transactions DVF (appartements, pièces)."
         },
@@ -7961,7 +8035,7 @@
           "provider": "INSEE / data.gouv",
           "dataset": "Revenu des français à la commune (Filosofi 2021)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.388021",
+          "fetched_at": "2026-06-26T09:24:50.857293",
           "url": "https://www.data.gouv.fr/api/1/datasets/revenu-des-francais-a-la-commune/",
           "note": "[DISP] Médiane (€) — revenu disponible par unité de consommation."
         },
@@ -7969,13 +8043,13 @@
           "provider": "data.gouv + BAN + Nominatim",
           "dataset": "geocoding-arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.906654",
+          "fetched_at": "2026-06-26T09:24:51.981181",
           "url": "https://api-adresse.data.gouv.fr/search/",
           "note": "Centroïde médian ; BAN prioritaire, Nominatim en secours."
         }
       },
       "metadata": {
-        "cleaned_at": "2026-06-24T10:05:23.080872",
+        "cleaned_at": "2026-06-26T09:24:57.159679",
         "nb_prix_records": 36,
         "nb_evolution_records": 3,
         "data_quality": {
@@ -7986,7 +8060,7 @@
           },
           "missing_fields": [],
           "imputed_fields": [],
-          "processed_at": "2026-06-24T10:05:23.080872"
+          "processed_at": "2026-06-26T09:24:57.159679"
         }
       },
       "accessibilite_logement": {
@@ -8279,7 +8353,10 @@
         "pm10_moyen": 15.38,
         "no2_moyen": 25.55,
         "date_mesure": "2020-12-31",
-        "qualite": "bonne"
+        "qualite": "bonne",
+        "indice_atmo_local": 1.21,
+        "indice_atmo_paris": 1.2,
+        "methode_local": "Indice Citeair Paris ajusté par densité et offre de transports (proxy arrondissement)"
       },
       "delits_enregistres": {
         "total_delits": 19403,
@@ -8302,20 +8379,20 @@
         "annee": 2025
       },
       "vegetation_arbres": {
-        "nombre_arbres": 4414,
-        "surface_espaces_verts_ha": 37.06,
-        "pourcentage_vegetation": 8.53,
-        "arbres_par_km2": 910,
-        "parcs_et_jardins": 9,
+        "nombre_arbres": 1985,
+        "surface_espaces_verts_ha": 21.65,
+        "pourcentage_vegetation": 11.38,
+        "arbres_par_km2": 379,
+        "parcs_et_jardins": 8,
         "annee": 2024
       },
       "transports_publics": {
-        "stations_metro": 13,
-        "stations_rer": 1,
-        "arrets_bus": 45,
-        "lignes_metro": 6,
-        "lignes_bus": 6,
-        "total_transports": 59,
+        "stations_metro": 4,
+        "stations_rer": 5,
+        "arrets_bus": 34,
+        "lignes_metro": 4,
+        "lignes_bus": 16,
+        "total_transports": 43,
         "annee": 2024
       },
       "geocoding": {
@@ -8333,28 +8410,28 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "evolution": {
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "delits_enregistres": {
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:38.509535",
+          "fetched_at": "2026-06-26T09:24:45.444327",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "pollution_qualite_air": {
           "provider": "OpenData Paris",
           "dataset": "qualite-de-l-air-indice-citeair-jusqu-a-2020",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:39.676824",
+          "fetched_at": "2026-06-26T09:24:46.074740",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/qualite-de-l-air-indice-citeair-jusqu-a-2020/records",
           "note": "Indice dérivé des statistiques Citeair (échelle Paris, appliqué à tous les arrondissements)."
         },
@@ -8362,14 +8439,14 @@
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance (insee_pop)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.462787",
+          "fetched_at": "2026-06-26T09:24:47.824702",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "loyers": {
           "provider": "opendata.paris.fr",
           "dataset": "logement-encadrement-des-loyers",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.492064",
+          "fetched_at": "2026-06-26T09:24:47.845530",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logement-encadrement-des-loyers/exports/csv",
           "note": "Médiane des loyers de référence €/m²/mois par arrondissement."
         },
@@ -8377,7 +8454,7 @@
           "provider": "Paris / Caisse des Dépôts",
           "dataset": "logements-sociaux-dans-les-communes + RPLS arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.329380",
+          "fetched_at": "2026-06-26T09:24:48.580408",
           "url": "https://opendata.caissedesdepots.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-dans-les-communes/exports/csv",
           "note": "Taux 2024 par arrondissement ; évolution calibrée sur livraisons Paris open data."
         },
@@ -8385,7 +8462,7 @@
           "provider": "opendata.paris.fr",
           "dataset": "logements-sociaux-finances-a-paris",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.298205",
+          "fetched_at": "2026-06-26T09:24:48.477685",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-finances-a-paris/exports/csv",
           "note": "Livraisons annuelles par arrondissement pour la série 2018–2024."
         },
@@ -8393,7 +8470,7 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.372753",
+          "fetched_at": "2026-06-26T09:24:48.605413",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz",
           "note": "Typologie estimée à partir des transactions DVF (appartements, pièces)."
         },
@@ -8401,7 +8478,7 @@
           "provider": "INSEE / data.gouv",
           "dataset": "Revenu des français à la commune (Filosofi 2021)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.388021",
+          "fetched_at": "2026-06-26T09:24:50.857293",
           "url": "https://www.data.gouv.fr/api/1/datasets/revenu-des-francais-a-la-commune/",
           "note": "[DISP] Médiane (€) — revenu disponible par unité de consommation."
         },
@@ -8409,13 +8486,13 @@
           "provider": "data.gouv + BAN + Nominatim",
           "dataset": "geocoding-arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.906654",
+          "fetched_at": "2026-06-26T09:24:51.981181",
           "url": "https://api-adresse.data.gouv.fr/search/",
           "note": "Centroïde médian ; BAN prioritaire, Nominatim en secours."
         }
       },
       "metadata": {
-        "cleaned_at": "2026-06-24T10:05:23.086962",
+        "cleaned_at": "2026-06-26T09:24:57.177975",
         "nb_prix_records": 36,
         "nb_evolution_records": 3,
         "data_quality": {
@@ -8426,7 +8503,7 @@
           },
           "missing_fields": [],
           "imputed_fields": [],
-          "processed_at": "2026-06-24T10:05:23.086962"
+          "processed_at": "2026-06-26T09:24:57.177975"
         }
       },
       "accessibilite_logement": {
@@ -8719,7 +8796,10 @@
         "pm10_moyen": 15.38,
         "no2_moyen": 25.55,
         "date_mesure": "2020-12-31",
-        "qualite": "bonne"
+        "qualite": "bonne",
+        "indice_atmo_local": 1.21,
+        "indice_atmo_paris": 1.2,
+        "methode_local": "Indice Citeair Paris ajusté par densité et offre de transports (proxy arrondissement)"
       },
       "delits_enregistres": {
         "total_delits": 12040,
@@ -8742,20 +8822,20 @@
         "annee": 2025
       },
       "vegetation_arbres": {
-        "nombre_arbres": 3693,
-        "surface_espaces_verts_ha": 28.8,
-        "pourcentage_vegetation": 22.0,
-        "arbres_par_km2": 686,
+        "nombre_arbres": 4594,
+        "surface_espaces_verts_ha": 43.17,
+        "pourcentage_vegetation": 12.3,
+        "arbres_par_km2": 717,
         "parcs_et_jardins": 6,
         "annee": 2024
       },
       "transports_publics": {
-        "stations_metro": 15,
-        "stations_rer": 3,
-        "arrets_bus": 21,
-        "lignes_metro": 1,
-        "lignes_bus": 20,
-        "total_transports": 39,
+        "stations_metro": 5,
+        "stations_rer": 1,
+        "arrets_bus": 29,
+        "lignes_metro": 3,
+        "lignes_bus": 16,
+        "total_transports": 35,
         "annee": 2024
       },
       "geocoding": {
@@ -8773,28 +8853,28 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "evolution": {
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:20.068753",
+          "fetched_at": "2026-06-26T09:24:40.813757",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz"
         },
         "delits_enregistres": {
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:38.509535",
+          "fetched_at": "2026-06-26T09:24:45.444327",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "pollution_qualite_air": {
           "provider": "OpenData Paris",
           "dataset": "qualite-de-l-air-indice-citeair-jusqu-a-2020",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:39.676824",
+          "fetched_at": "2026-06-26T09:24:46.074740",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/qualite-de-l-air-indice-citeair-jusqu-a-2020/records",
           "note": "Indice dérivé des statistiques Citeair (échelle Paris, appliqué à tous les arrondissements)."
         },
@@ -8802,14 +8882,14 @@
           "provider": "data.gouv",
           "dataset": "bases-statistiques-communale-delinquance (insee_pop)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.462787",
+          "fetched_at": "2026-06-26T09:24:47.824702",
           "url": "https://static.data.gouv.fr/resources/bases-statistiques-communale-departementale-et-regionale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/20260326-124228/donnee-comm-data.gouv-parquet-2025-geographie2025-produit-le2026-02-03.parquet"
         },
         "loyers": {
           "provider": "opendata.paris.fr",
           "dataset": "logement-encadrement-des-loyers",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:43.492064",
+          "fetched_at": "2026-06-26T09:24:47.845530",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logement-encadrement-des-loyers/exports/csv",
           "note": "Médiane des loyers de référence €/m²/mois par arrondissement."
         },
@@ -8817,7 +8897,7 @@
           "provider": "Paris / Caisse des Dépôts",
           "dataset": "logements-sociaux-dans-les-communes + RPLS arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.329380",
+          "fetched_at": "2026-06-26T09:24:48.580408",
           "url": "https://opendata.caissedesdepots.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-dans-les-communes/exports/csv",
           "note": "Taux 2024 par arrondissement ; évolution calibrée sur livraisons Paris open data."
         },
@@ -8825,7 +8905,7 @@
           "provider": "opendata.paris.fr",
           "dataset": "logements-sociaux-finances-a-paris",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.298205",
+          "fetched_at": "2026-06-26T09:24:48.477685",
           "url": "https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/logements-sociaux-finances-a-paris/exports/csv",
           "note": "Livraisons annuelles par arrondissement pour la série 2018–2024."
         },
@@ -8833,7 +8913,7 @@
           "provider": "data.gouv",
           "dataset": "geo-dvf",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:44.372753",
+          "fetched_at": "2026-06-26T09:24:48.605413",
           "url": "https://files.data.gouv.fr/geo-dvf/latest/csv/2024/departements/75.csv.gz",
           "note": "Typologie estimée à partir des transactions DVF (appartements, pièces)."
         },
@@ -8841,7 +8921,7 @@
           "provider": "INSEE / data.gouv",
           "dataset": "Revenu des français à la commune (Filosofi 2021)",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.388021",
+          "fetched_at": "2026-06-26T09:24:50.857293",
           "url": "https://www.data.gouv.fr/api/1/datasets/revenu-des-francais-a-la-commune/",
           "note": "[DISP] Médiane (€) — revenu disponible par unité de consommation."
         },
@@ -8849,13 +8929,13 @@
           "provider": "data.gouv + BAN + Nominatim",
           "dataset": "geocoding-arrondissements",
           "status": "live",
-          "fetched_at": "2026-06-24T10:01:46.906654",
+          "fetched_at": "2026-06-26T09:24:51.981181",
           "url": "https://api-adresse.data.gouv.fr/search/",
           "note": "Centroïde médian ; BAN prioritaire, Nominatim en secours."
         }
       },
       "metadata": {
-        "cleaned_at": "2026-06-24T10:05:23.092508",
+        "cleaned_at": "2026-06-26T09:24:57.194631",
         "nb_prix_records": 36,
         "nb_evolution_records": 3,
         "data_quality": {
@@ -8866,7 +8946,7 @@
           },
           "missing_fields": [],
           "imputed_fields": [],
-          "processed_at": "2026-06-24T10:05:23.092508"
+          "processed_at": "2026-06-26T09:24:57.194631"
         }
       },
       "accessibilite_logement": {

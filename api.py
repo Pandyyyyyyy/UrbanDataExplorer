@@ -1,7 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from typing import List, Optional, Dict
 from datetime import datetime
 import json
@@ -476,6 +476,7 @@ async def root():
     return {
         "message": "Urban Data Explorer API",
         "version": "3.0.0",
+        "dashboard": "/dashboard/",
         "architecture": "Medallion + PostgreSQL + MongoDB + MinIO + Redis",
         "data_layer": "Gold (données clean et enrichies)",
         "endpoints": {
@@ -1084,6 +1085,15 @@ async def get_timeline(arr: int):
         "evolution_calculee": arr_data.get("evolution_calculee"),
         "tendance_annuelle": arr_data.get("tendance_annuelle")
     }
+
+
+DASHBOARD_DIR = Path(__file__).resolve().parent / "dashboard"
+if DASHBOARD_DIR.is_dir():
+    app.mount(
+        "/dashboard",
+        StaticFiles(directory=str(DASHBOARD_DIR), html=True),
+        name="dashboard",
+    )
 
 
 if __name__ == "__main__":
