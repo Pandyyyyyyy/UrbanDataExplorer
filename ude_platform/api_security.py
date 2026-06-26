@@ -13,7 +13,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
 
 UDE_API_KEY = os.getenv("UDE_API_KEY", "").strip()
-API_RATE_LIMIT = int(os.getenv("API_RATE_LIMIT", "30"))  # requetes / minute / IP (strict)
+API_RATE_LIMIT = int(os.getenv("API_RATE_LIMIT", "100"))  # requetes / minute / IP
 API_RATE_WINDOW_SEC = int(os.getenv("API_RATE_WINDOW_SEC", "60"))
 API_DAILY_LIMIT = int(os.getenv("API_DAILY_LIMIT", "500"))  # requetes / jour / IP (strict)
 
